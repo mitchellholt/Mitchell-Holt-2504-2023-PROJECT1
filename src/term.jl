@@ -39,7 +39,15 @@ one(::Type{Term})::Term = Term(1,0)
 """
 Show a term.
 """
-show(io::IO, t::Term) = print(io, "$(t.coeff)⋅x^$(t.degree)") #\cdot + [TAB]
+function show(io::IO, t::Term)
+    if t.degree == 0
+        print(io, abs(t.coeff))
+    elseif t.coeff == 1
+        print(io, "x", t.degree == 1 ? "" : int_to_superscript(t.degree))
+    else
+        print(io, abs(t.coeff), "x", t.degree == 1 ? "" : int_to_superscript(t.degree))
+    end
+end
 
 ########################
 # Queries about a term #

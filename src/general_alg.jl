@@ -59,3 +59,24 @@ function int_inverse_mod(a::Int, m::Int)::Int
     end
     return mod(ext_euclid_alg(a,m)[2],m)
 end
+
+function digit_to_superscript(n :: Int) :: Char
+    # Literal for zero
+    zero_code = 0x2070
+    
+    # cringe edge cases
+    if n == 1
+        return Char(0x00B9)
+    elseif n == 2
+        return Char(0x00B2)
+    elseif n == 3
+        return Char(0x00B3)
+    else
+        # based normal case
+        return Char(zero_code + n)
+    end
+end
+
+function int_to_superscript(k :: Int) :: String
+    k == 0 ? "" : int_to_superscript(div(k, 10)) * digit_to_superscript(mod(k, 10))
+end
