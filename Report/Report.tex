@@ -10,6 +10,7 @@
 \usetikzlibrary{automata,arrows.meta,positioning,calc,decorations.pathmorphing}
 \usepackage{etoolbox} % setcounter{counter}{num}
 \usepackage{enumitem} % \begin{enumerate}[label=(\alph*)]
+\usepackage{xcolor}
 
 % QUIVER STUFF
 % A TikZ style for curved arrows of a fixed height, due to AndréC.
@@ -44,6 +45,13 @@
 \newenvironment{solution}
   {\renewcommand\qedsymbol{$\blacksquare$}\begin{proof}[Solution]}
   {\end{proof}}
+
+\newtcolorbox{codebox}[1][] {
+    colback = black!2!white,
+    colframe = black,
+    sharp corners,
+    title = \texttt{#1}
+}
 
 \newtcolorbox{problembox} {
     colback = white,
@@ -110,34 +118,223 @@
 
 \maketitle
 
+\tableofcontents
+
+\newpage
+
+\section{GitHub Repository}
+
 The entire source code for the project can be found on the
-\href{https://github.com/mitchellholt/Mitchell-Holt-2504-2023-PROJECT1}{GitHub
-repository}.
+\href{https://github.com/mitchellholt/Mitchell-Holt-2504-2023-PROJECT1}
+{\color{blue}GitHub repository}.
+
 
 \section{Example Script}
 The provided example script demonstrates some of the functionality of the
 pre-existing code. The first few lines initialize the project, and then there is
-an example of some basic polynomil arithmetic:
-\begin{Verbatim}
-    x = x_poly()
-    p1 = 2x^3 + 4x^2 - 3x
-    p2 = 2x^4 - 4x^2 - 3x + 3
+an example of some basic polynomial arithmetic:
 
-    @show p1*p2
-    @show p1^3
-\end{Verbatim}
+\begin{codebox}
+    \begin{Verbatim}
+x = x_poly()
+p1 = 2x^3 + 4x^2 - 3x
+p2 = 2x^4 - 4x^2 - 3x + 3
+
+@show p1*p2
+@show p1^3
+    \end{Verbatim}
+\end{codebox}
+
 Output:
 \begin{Verbatim}
-    p1 * p2 = 4x⁷ + 8x⁶ - 14x⁵ - 22x⁴ + 6x³ + 21x² - 9x
-    p1 ^ 3 = 8x⁹ + 48x⁸ + 60x⁷ - 80x⁶ - 90x⁵ + 108x⁴ - 27x³
+    p1 * p2 = 4x^7 + 8x^6 - 14x^5 - 22x^4 + 6x^3 + 21x^2 - 9x
+    p1 ^ 3 = 8x^9 + 48x^8 + 60x^7 - 80x^6 - 90x^5 + 108x^4 - 27x^3
+\end{Verbatim}
+We may also take the derivatives of polynomials:
+
+\begin{codebox}
+    \begin{Verbatim}
+@show derivative(p1*p2)
+@show derivative(p1)*p2 + p1*derivative(p2);
+    \end{Verbatim}
+\end{codebox}
+
+Output:
+\begin{Verbatim}
+    derivative(p1 * p2) = 28x^6 + 48x^5 - 70x^4 - 88x^3 + 18x^2 + 42x - 9
+    derivative(p1) * p2 + p1 * derivative(p2) = 28x^6 + 48x^5 - 70x^4 - 88x^3 + 18x^2 + 42x - 9
+\end{Verbatim}
+
+There are functions defined for working with polynomials modulo some prime,
+which is particularly useful for factoring polynomials:
+
+\begin{codebox}
+    \begin{Verbatim}
+prime = 17
+p = mod((7x^3 + 2x^2 + 8x + 1)*(x^2+x+1),prime)
+println("Will factor this polynomial (mod $prime): ", p)
+factorization = factor(p,prime)
+println("Here is the factorization: ", factorization)
+
+pr = mod(expand_factorization(factorization),prime)
+println("Reconstructing: ", pr)
+    \end{Verbatim}
+\end{codebox}
+
+Output (with the third line split so the output will fit on the document):
+\begin{Verbatim}
+    Will factor this polynomial (mod 17): 7x^5 + 9x^4 + 11x^2 + 9x + 1
+    Here is the factorization: Tuple{Polynomial, Int64}[(x + 8, 1),
+        (x^2 + x + 1, 1), (x^2 + 2x + 7, 1), (7, 1)]
+    Reconstructing: 7x^5 + 9x^4 + 11x^2 + 9x + 1
 \end{Verbatim}
 
 \bigbreak
 
 \section{Tests}
+The provided tests produce the following output:
+\begin{Verbatim}
+    test_euclid_ints - PASSED
+    test_ext_euclid_ints - PASSED
+    prod_test_poly - PASSED
+    prod_derivative_test_poly - PASSED
+    ext_euclid_test_poly - PASSED
+    division_test_poly - PASSED
+
+    doing prime = 5 	 ..........
+    doing prime = 17 	..........
+    doing prime = 19 	..........
+    factor_test_poly - PASSED
+\end{Verbatim}
 
 \bigbreak
 
 \section{Task 1}
+\subsection{Example Script}
+TODO lol
 
+\bigbreak
+
+\subsection{Pretty Printing}
+The show methods in both \texttt{polynomial.jl} and \texttt{term.jl} were
+modified to meet the pretty printing rules. A global option was added to
+determine if terms in polynomials were printed in ascending or descending term
+order (defaulting to descending):
+
+\begin{codebox}[polynomial.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+"""
+Based global variable for deciding the order in which polynomial terms are
+printed
+"""
+global lowest_to_highest :: Bool = false
+
+    \end{Verbatim}
+\end{codebox}
+
+The provided \texttt{show} method for polynomials was replaced with the
+following:
+
+\begin{codebox}[polynomial.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function show(io::IO, p::Polynomial) 
+    if iszero(p)
+        print(io,"0")
+    else
+        is_first = true
+        n = length(p.terms)
+        term_list = lowest_to_highest ? p.terms : reverse(p.terms)
+        for t in term_list
+            if iszero(t)
+                continue
+            elseif is_first
+                print(io, t.coeff < 0 ? "-" : "", t)
+            else
+                print(io, t.coeff < 0 ? " - " : " + ", t)
+            end
+            is_first = false
+        end
+    end
+end
+    \end{Verbatim}
+\end{codebox}
+
+First, observe that the \texttt{lowest\_to\_highest} flag is used on line 7 to
+determine in which order to iterate over the list of terms. If the given
+polynomial is the zero polynomial, then the output is \texttt{0}. Otherwise, the
+\texttt{show} method above will simply skip those terms which are zero.
+Printing terms with negative coefficient as \texttt{1 - x} instead of
+\texttt{1 + -x} was implemented by changing the monomial show method to always
+display the absolute value of the coefficient. Then on line 14 above, the
+\texttt{show} method prints either a \texttt{+} or \texttt{-} sign in front of
+the monomial as appropriate. \medbreak
+
+The final consideration is how to print the first term in the monomial so that
+there is not ``\texttt{ + }" or ``\texttt{ - }" with excessive surrounding
+whitespace at the start of the \texttt{show} output. It is not necessarily the
+case that the first term in the list of terms for the polynomial will be
+non-zero, so we introduce on line 5 a flag \texttt{is\_first}, which will be set
+until the first non-zero term has been printed. Then at the first term we need
+only check if it has positive coefficient (and print nothing before the term),
+or negative (in which case we print ``\texttt{-}" with no surrounding
+whitespace). \medbreak
+
+Consider now the implementation of the \texttt{show} method for monomials:
+
+\begin{codebox}[term.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function show(io::IO, t::Term)
+    if t.degree == 0
+        print(io, abs(t.coeff))
+    elseif abs(t.coeff) == 1
+        print(io, "x", t.degree == 1 ? "" : int_to_superscript(t.degree))
+    else
+        print(io, abs(t.coeff), "x",
+            t.degree == 1 ? "" : int_to_superscript(t.degree))
+    end
+end
+    \end{Verbatim}
+\end{codebox}
+
+We check for zero degree terms (and print the coefficient only) on lines 2-3. At
+line 4-5 we check if a polynomial has non-zero degree and has a coefficient of
+$\pm 1$, in which case we print \texttt{x} instead of \texttt{1x}. Furthermore,
+on lines 5 and 7-8, we only print the degree of the monomial if it not 1.
+\medbreak
+
+Finally, unicode superscript printing was implemented using a function
+\texttt{int\_to\_superscript}:
+
+\begin{codebox}[general\_alg.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function digit_to_superscript(n :: Int) :: Char
+    # Literal for zero
+    zero_code = 0x2070
+    
+    # cringe edge cases
+    if n == 1
+        return Char(0x00B9)
+    elseif n == 2
+        return Char(0x00B2)
+    elseif n == 3
+        return Char(0x00B3)
+    else
+        # based normal case
+        return Char(zero_code + n)
+    end
+end
+
+function int_to_superscript(k :: Int) :: String
+    k == 0 ? "" : int_to_superscript(div(k, 10)) * digit_to_superscript(mod(k, 10))
+end
+    \end{Verbatim}
+\end{codebox}
+
+The function \texttt{digit\_to\_superscript} converts a single digit to a
+superscript unicode character and is called in the recursively defined
+\texttt{int\_to\_superscript} on line 18. Notice that the \texttt{*} operator on
+line 19 is the string concatenation operator. Although converting the input
+\texttt{k} into a string and then mapping each character to a superscript one
+would have worked, this method is much more efficient as no memory is allocated
+for an intermediate string representation of the input.
 \end{document}
