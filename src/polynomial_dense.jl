@@ -17,14 +17,6 @@ printed
 global lowest_to_highest :: Bool = false
 
 """
-Nice little API to set lowest_to_highest global to true or false (defaults to
-true)
-"""
-function set_lowest_to_highest(b = true)
-    lowest_to_highest = b
-end
-
-"""
 A Polynomial type - designed to be for polynomials with integer coefficients.
 """
 struct Polynomial

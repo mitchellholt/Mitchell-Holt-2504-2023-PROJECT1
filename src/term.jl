@@ -42,10 +42,11 @@ Show a term.
 function show(io::IO, t::Term)
     if t.degree == 0
         print(io, abs(t.coeff))
-    elseif t.coeff == 1
+    elseif abs(t.coeff) == 1
         print(io, "x", t.degree == 1 ? "" : int_to_superscript(t.degree))
     else
-        print(io, abs(t.coeff), "x", t.degree == 1 ? "" : int_to_superscript(t.degree))
+        print(io, abs(t.coeff), "x",
+            t.degree == 1 ? "" : int_to_superscript(t.degree))
     end
 end
 

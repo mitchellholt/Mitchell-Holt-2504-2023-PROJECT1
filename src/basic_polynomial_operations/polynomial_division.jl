@@ -13,7 +13,7 @@ f = q*g + r
 
 p is a prime
 """
-function divide(num::Polynomial, den::Polynomial)
+function divide(num :: P, den :: P) where P <: Union{Polynomial, PolynomialSparse}
     function division_function(p::Int)
         f, g = mod(num,p), mod(den,p)
         degree(f) < degree(num) && return nothing 
@@ -36,9 +36,13 @@ end
 """
 The quotient from polynomial division. Returns a function of an integer.
 """
-÷(num::Polynomial, den::Polynomial)  = (p::Int) -> first(divide(num,den)(p))
+function ÷(num :: P, den :: P) where P <: Union{Polynomial, PolynomialSparse}
+    return (p :: Int) -> divide(num,den)(p) |> first
+end
 
 """
 The remainder from polynomial division. Returns a function of an integer.
 """
-rem(num::Polynomial, den::Polynomial)  = (p::Int) -> last(divide(num,den)(p))
+function rem(num :: P, den :: P) where P <: Union{Polynomial, PolynomialSparse}
+     return (p :: Int) -> divide(num,den)(p) |> last
+ end

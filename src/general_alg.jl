@@ -60,6 +60,9 @@ function int_inverse_mod(a::Int, m::Int)::Int
     return mod(ext_euclid_alg(a,m)[2],m)
 end
 
+"""
+Convert a single base 10 digit to a superscript unicode character
+"""
 function digit_to_superscript(n :: Int) :: Char
     # Literal for zero
     zero_code = 0x2070
@@ -77,6 +80,9 @@ function digit_to_superscript(n :: Int) :: Char
     end
 end
 
+"""
+Convert a positive integer to a string of superscipt unicode characters.
+"""
 function int_to_superscript(k :: Int) :: String
     k == 0 ? "" : int_to_superscript(div(k, 10)) * digit_to_superscript(mod(k, 10))
 end
