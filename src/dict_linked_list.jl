@@ -123,12 +123,12 @@ lookup(dll :: DictLinkedList{K, V}, key :: K) where {K, V} = dll.dict[key].data
 
 
 # TESTS
-dll = DictLinkedList{Int, Int}(<=)
-for i in 0:4
-    insert!(dll, i, i + 1)
-end
-filter!(dll, iseven)
-for x in dll
-    println(x)
-end
-@show contains(dll, 3)
+# dll = DictLinkedList{Int, Int}(<=)
+# for i in 0:4
+#     insert!(dll, i, i + 1)
+# end
+# filter!(dll, iseven)
+# for x in dll
+#     println(x)
+# end
+# @show contains(dll, 3)

@@ -36,12 +36,12 @@ cyclotonic_polynomial_sparse(p::Int) = PolynomialSparse([Term(1,p), Term(-1,0)])
 """
 Construct a polynomial of the form x-n.
 """
-linear_monic_polynomial_sparse(n::Int) = Polynomial([Term(1,1), Term(-n,0)])
+linear_monic_polynomial_sparse(n::Int) = PolynomialSparse([Term(1,1), Term(-n,0)])
 
 """
 Construct a polynomial of the form x.
 """
-x_poly_sparse() = Polynomial(Term(1,1))
+x_poly_sparse() = PolynomialSparse(Term(1,1))
 
 """
 Creates the zero polynomial.
