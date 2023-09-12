@@ -244,7 +244,7 @@ Subtraction of two polynomials.
 Multiplication of polynomial and term.
 """
 function *(t::Term, p1::PolynomialSparse)::PolynomialSparse
-    if iszero(t)
+    if iszero(t) || iszero(p1)
         return PolynomialSparse()
     end
     p = PolynomialSparse()
