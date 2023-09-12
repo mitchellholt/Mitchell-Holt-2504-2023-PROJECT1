@@ -407,13 +407,12 @@ for an intermediate string representation of the input.
 \subsection{PolynomialSparse}
 The \texttt{PolynomialSparse} only stores \emph{non-zero} terms and is defined
 below. We will discuss the \texttt{DictLinkedList} data structure in detail in
-section \ref{dll}.
+section \ref{dll}. We will explore the definition of the
+\texttt{PolynomialSparse} type and look at the non-trivial operations on it
+which are substantially different to those on the provided type.
 
 \begin{codebox}[polynomial\_sparse.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
-"""
-Sparse Polynomial type - store only the monomials with non-zero coefficient
-"""
 struct PolynomialSparse
 
     # DictLinkedList mapping degrees of terms to the term. A polynomial is the
@@ -445,13 +444,195 @@ end
 
 Notice in particular that, because we only store non-zero terms inside a sparse
 polynomial, the unique way to represent the zero polynomial is the one where the
-\texttt{terms} field is empty.
+\texttt{terms} field is empty. Addition was implemented using heap-like
+operations on \texttt{PolynomialSparse.terms} to take advantage of the
+underlying list being sorted.
+
+\begin{codebox}[basic\_polynomial\_operations/polynomial\_addition.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function +(p1 :: PolynomialSparse, p2 :: PolynomialSparse) :: PolynomialSparse
+    p1_ = deepcopy(p1)
+    p2_ = deepcopy(p2)
+    p = PolynomialSparse()
+    while !iszero(p1_) || !iszero(p2_)
+        if (degree(p1_) == degree(p2_))
+            t = pop!(p1_) + pop!(p2_)
+            iszero(t) ? continue : push!(p, t)
+        elseif degree(p1_) > degree(p2_)
+            push!(p, pop!(p1_))
+        else
+            push!(p, pop!(p2_))
+        end
+    end
+    return p
+end
+    \end{Verbatim}
+\end{codebox}
+
+\bigbreak
+
+\subsection{Tests}
+The tests for sparse polynomials are identical to those for dense polynomials
+and may be found in the file \texttt{test/polynomial\_sparse\_test.jl}.
 
 \bigbreak
 
 \subsection{DictLinkedList Data Structure} \label{dll}
+The data structure \texttt{DictLinkedList\string{K, V\string}} is a sorted
+linked list with values of type \texttt V along with a dictionary mapping some
+key type \texttt K into the nodes of the linked list so that we can quickly
+lookup values inside the linked list without having to traverse it. To make
+the type polymorphic, we simply add a field in the struct containing a
+comparator \texttt{comp}.
+
+\begin{codebox}[dict\_linked\_list.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+mutable struct DictLinkedList{K, V}
+    # Sorted linked list
+    list :: MutableLinkedList{V}
+    # Dictionary with with values pointing nodes in the linked list
+    dict :: Dict{K, DataStructures.ListNode{V}}
+    # total order on V
+    comp :: Function
+
+    DictLinkedList{K, V}(comp) where {K, V} = new(
+        MutableLinkedList{V}(),
+        Dict{K, DataStructures.ListNode{V}}(),
+        comp)
+end
+    \end{Verbatim}
+\end{codebox}
+
+The \texttt{iteration} interface is implemented by simply iterating over the
+underlying linked list (in order). Observe that on line 4 we compare pointers
+for equality to improve speed without sacrificing correctness:
+
+\begin{codebox}[dict\_linked\_list.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function Base.iterate(
+        dll :: DictLinkedList{K, V},
+        state = dll.list.node) where {K, V}
+    root_node = dll.list.node
+    state.next === root_node ? nothing : (state.next.data, state.next)
+end
+    \end{Verbatim}
+\end{codebox}
+
+We may insert elements into the linked list
+using \texttt{insert!}, which takes a key and value and inserts the value into
+the underlying list (such that order is preserved) and maps the key to a pointer
+to the newly created list node in the underlying dictionary.
+
+\begin{codebox}[dict\_linked\_list.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function insert!(dll :: DictLinkedList{K, V}, key :: K, value :: V) where {K, V}
+    # check the key does not already exist in the dictionary
+    haskey(dll.dict, key) && error("Duplicate key")
+
+    # Pointer to the element immediately before where value should be inserted
+    elem_before = dll.list.node
+    if dll.comp(elem_before.prev.data, value)
+        # can insert at the end of the list
+        elem_before = elem_before.prev
+    else
+        next = iterate(dll)
+        while next !== nothing
+            (x, current) = next
+            if dll.comp(x, value)
+                elem_before = current
+                next = iterate(dll, current)
+            else
+                break
+            end
+        end
+    end
+    # insert the value here
+    new_node = DataStructures.ListNode{V}(value)
+    new_node.prev = elem_before
+    new_node.next = elem_before.next
+    elem_before.next.prev = new_node
+    elem_before.next = new_node
+    dll.list.len += 1
+
+    # add an entry to the dictionary
+    dll.dict[key] = new_node
+    return nothing
+end
+    \end{Verbatim}
+\end{codebox}
+
+There is also a method to remove a key from the dictionary and the value pointed
+to by the key from the list:
+
+\begin{codebox}[dict\_linked\_list.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function remove!(dll :: DictLinkedList{K, V}, key :: K) :: Nothing where {K, V}
+    !haskey(dll.dict, key) && error("Key does not exist")
+    node = dll.dict[key]
+    delete!(dll.dict, key)
+    node.prev.next = node.next
+    node.next.prev = node.prev
+    dll.list.len -= 1
+    return nothing
+end
+    \end{Verbatim}
+\end{codebox}
+
+Several other methods (including \texttt{filter!}, \texttt{lookup},
+\texttt{map}, \texttt{replace!} and \texttt{show}) were implemented, none of
+which are particularly exciting.
 
 \bigbreak
 
 \subsection{Discussion}
+
+Having written the tests for sparse polynomials to be identical to those
+provided for dense polynomials, we may easily compare the performance of each
+data type using the \texttt{@time} macro. For the sake of conciseness, all
+output except running time and memory used from \texttt{@time} has been manually
+removed from the output:
+
+\begin{Verbatim}
+    ######################################
+    # Dense polynomial tests #
+    ######################################
+    prod_test_poly - PASSED
+     12.722033 seconds (allocations: 51.691 GiB)
+    prod_derivative_test_poly - PASSED
+      0.003085 seconds (allocations: 10.690 MiB)
+    ext_euclid_test_poly - PASSED
+      0.209129 seconds (allocations: 491.821 MiB)
+    division_test_poly - PASSED
+      0.830835 seconds (allocations: 2.168 GiB)
+
+    doing prime = 5 	..........
+    doing prime = 17 	..........
+    doing prime = 19 	..........
+    factor_test_poly - PASSED
+      5.681664 seconds (allocations: 26.530 GiB)
+
+
+
+    ######################################
+    # Sparse polynomial tests #
+    ######################################
+    prod_test_poly_sparse - PASSED
+     74.335241 seconds (allocations: 17.223 GiB)
+    prod_derivative_test_poly_sparse - PASSED
+      0.045319 seconds (allocations: 9.714 MiB)
+    ext_euclid_test_poly_sparse - PASSED
+      3.367378 seconds (allocations: 717.322 MiB)
+    division_test_poly_sparse - PASSED
+     10.505014 seconds (allocations: 2.087 GiB)
+
+    doing prime = 5 	..........
+    doing prime = 17 	..........
+    doing prime = 19 	..........
+    factor_test_poly_sparse - PASSED
+     14.825052 seconds (allocations: 3.473 GiB)
+\end{Verbatim}
+
+Thus it is clear that, in every case, dense polynomial operations are faster
+than those on sparse polynomials. However, for multiplication and factorization,
+sparse polynomials use far less memory.
 \end{document}

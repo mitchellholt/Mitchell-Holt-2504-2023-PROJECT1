@@ -15,8 +15,6 @@ include("polynomials_test.jl")
 include("polynomial_sparse_test.jl")
 include("factorization_test.jl")
 
-println("Starting tests")
-
 ####
 # Execute unit tests for integers
 ###
@@ -24,23 +22,26 @@ println("Starting tests")
 # test_ext_euclid_ints()
 
 ####
-# Execute unit tests for polynomials
+# Execute unit tests for dense polynomials and factorization
 ####
+println("######################################")
+println("# Dense polynomial tests #")
+println("######################################")
 @time prod_test_poly()
-prod_derivative_test_poly()
-ext_euclid_test_poly()
-division_test_poly()
-
-####
-# Execute unit tests for sparse polynomials
-####
-@time prod_test_poly_sparse()
-prod_derivative_test_poly_sparse()
-ext_euclid_test_poly_sparse()
-division_test_poly_sparse()
-
-####
-# Execute unit tests for polynomial factorization
-####
+@time prod_derivative_test_poly()
+@time ext_euclid_test_poly()
+@time division_test_poly()
 @time factor_test_poly()
+
+####
+# Execute unit tests for sparse polynomials and factorization
+####
+println("\n\n")
+println("######################################")
+println("# Sparse polynomial tests #")
+println("######################################")
+@time prod_test_poly_sparse()
+@time prod_derivative_test_poly_sparse()
+@time ext_euclid_test_poly_sparse()
+@time division_test_poly_sparse()
 @time factor_test_poly_sparse()
