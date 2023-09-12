@@ -3,7 +3,9 @@ Pkg.activate(".")
 
 include("poly_factorization_project.jl")
 
+# global use_unicode = false
 
+# sneaky helper function
 function show(io :: IO, factors :: Vector{Tuple{PolynomialSparse, Int}})
     for (factor, m) in factors
         print(io, "($factor)", m == 1 ? "" : "^$(int_to_superscript(m))")

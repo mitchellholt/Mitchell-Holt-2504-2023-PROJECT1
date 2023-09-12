@@ -6,6 +6,8 @@
 #############################################################################
 #############################################################################
 
+global use_unicode = true
+
 """
 The quotient between two numbers
 """
@@ -84,5 +86,9 @@ end
 Convert a positive integer to a string of superscipt unicode characters.
 """
 function int_to_superscript(k :: Int) :: String
-    k == 0 ? "" : int_to_superscript(div(k, 10)) * digit_to_superscript(mod(k, 10))
+    if use_unicode
+        return k == 0 ? "" : int_to_superscript(div(k, 10)) * digit_to_superscript(mod(k, 10))
+    else
+        return k == 0 ? "^" : int_to_superscript(div(k, 10)) * Char(Int('0') + mod(k, 10))
+    end
 end
