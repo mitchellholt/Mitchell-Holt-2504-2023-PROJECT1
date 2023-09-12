@@ -3,7 +3,7 @@ Pkg.activate(".")
 
 include("poly_factorization_project.jl")
 
-x = x_poly(PolynomialSparse)
+x = x_poly(PolynomialDense)
 p1 = 2x^3 + 4x^2 - 3x
 p2 = 2x^4 - 4x^2 - 3x + 3
 
