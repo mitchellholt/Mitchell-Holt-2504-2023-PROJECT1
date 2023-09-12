@@ -7,7 +7,7 @@
 #############################################################################
 
 """
-Add a polynomial and a term.
+Add a dense polynomial and a term.
 """
 function +(p::PolynomialDense, t::Term)
     p = deepcopy(p)
@@ -24,6 +24,9 @@ function +(p::PolynomialDense, t::Term)
     return trim!(p)
 end
 
+"""
+Add a sparse polynomial and a term.
+"""
 function +(p::PolynomialSparse, t::Term)
     p_out = deepcopy(p)
     if iszero(t)
@@ -45,7 +48,7 @@ end
 +(t::Term, p::Union{PolynomialDense, PolynomialSparse}) = p + t
 
 """
-Add two polynomials.
+Add two dense polynomials.
 """
 function +(p1 :: PolynomialDense, p2 :: PolynomialDense) :: PolynomialDense
     p = deepcopy(p1)
@@ -55,9 +58,11 @@ function +(p1 :: PolynomialDense, p2 :: PolynomialDense) :: PolynomialDense
     return p
 end
 
-# TODO speed this up using insert at end
+"""
+Add two sparse polynomials. We exclusively use heap-like operations for efficiency
+"""
 function +(p1 :: PolynomialSparse, p2 :: PolynomialSparse) :: PolynomialSparse
-    p1_ = deepcopy(p1) # expensive?
+    p1_ = deepcopy(p1)
     p2_ = deepcopy(p2)
     p = PolynomialSparse()
     while !iszero(p1_) || !iszero(p2_)

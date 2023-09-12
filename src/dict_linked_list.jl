@@ -11,7 +11,7 @@ mutable struct DictLinkedList{K, V}
     list :: MutableLinkedList{V}
     # Dictionary with with values pointing nodes in the linked list
     dict :: Dict{K, DataStructures.ListNode{V}}
-    # total order on V, where comp(a, b) behaves like a <= b
+    # total order on V
     comp :: Function
 
     DictLinkedList{K, V}(comp) where {K, V} = new(
@@ -108,34 +108,39 @@ function filter!(dll :: DictLinkedList{K, V}, f :: Function) :: Nothing where {K
 end
 
 
+"""
+Check if a key is in the underlying dictionary of a DictLinkedList
+"""
 Base.contains(dll :: DictLinkedList{K, V}, key :: K) where {K, V} = haskey(dll.dict, key)
 
 
+"""
+Find the value corresponding to the given key
+"""
 lookup(dll :: DictLinkedList{K, V}, key :: K) where {K, V} = dll.dict[key].data
 
 
+"""
+Replace the value associated with a given key. Assume that the order of the list
+is preserved.
+"""
 function replace!(dll :: DictLinkedList{K, V}, key :: K, value :: V) where {K, V}
+    # @assert dll.comp(value, lookup(dll, key)) && dll.comp(lookup(dll, key), value)
     dll.dict[key].data = value
 end
 
 
+"""
+Get the last element of the underlying list
+"""
 last(dll :: DictLinkedList{K, V}) where {K, V} = dll.list.node.prev.data
 
 
+"""
+Show a DictLinkedList
+"""
 function show(io :: IO, dll :: DictLinkedList{K, V}) where {K, V}
     println(io, "DictLinkedList{$K, $V}")
     println(io, '\t', dll.dict)
     println(io, '\t', dll.list)
 end
-
-
-# TESTS
-# dll = DictLinkedList{Int, Int}(<=)
-# for i in 0:4
-#     insert!(dll, i, i + 1)
-# end
-# dll |> last |> println
-# filter!(dll, iseven)
-# for x in dll
-#     println(x)
-# end
