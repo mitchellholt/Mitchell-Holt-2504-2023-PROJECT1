@@ -37,19 +37,24 @@ list and adding a key to the underlying dictionary.
 function insert!(dll :: DictLinkedList{K, V}, key :: K, value :: V) :: Nothing where {K, V}
     # check the key does not already exist in the dictionary
     haskey(dll.dict, key) && error("Duplicate key")
+
     # Pointer to the element immediately before where value should be inserted
     elem_before = dll.list.node
-    next = iterate(dll)
-    while next !== nothing
-        (x, current) = next
-        if dll.comp(x, value)
-            elem_before = current
-            next = iterate(dll, current)
-        else
-            break
+    if dll.comp(elem_before.prev.data, value)
+        # can insert at the end of the list
+        elem_before = elem_before.prev
+    else
+        next = iterate(dll)
+        while next !== nothing
+            (x, current) = next
+            if dll.comp(x, value)
+                elem_before = current
+                next = iterate(dll, current)
+            else
+                break
+            end
         end
     end
-    
     # insert the value here
     new_node = DataStructures.ListNode{V}(value)
     new_node.prev = elem_before
@@ -85,19 +90,6 @@ that the underlying linked list is empty
 Base.empty(dll :: DictLinkedList{K, V}) where {K, V} = iterate(dll) === nothing
 
 
-"""
-Implementation of the Base.map function for DictLinedList
-"""
-function Base.map(f :: Function, dll :: DictLinkedList{K, V}) where {K, V}
-    next = iterate(dll)
-    while next !== nothing
-        (x, current) = next
-        current.data = f(x)
-        next = iterate(dll, current)
-    end
-end
-
-
 Base.length(dll :: DictLinkedList{K, V}) where {K, V} = dll.list.len
 
 
@@ -122,13 +114,28 @@ Base.contains(dll :: DictLinkedList{K, V}, key :: K) where {K, V} = haskey(dll.d
 lookup(dll :: DictLinkedList{K, V}, key :: K) where {K, V} = dll.dict[key].data
 
 
+function replace!(dll :: DictLinkedList{K, V}, key :: K, value :: V) where {K, V}
+    dll.dict[key].data = value
+end
+
+
+last(dll :: DictLinkedList{K, V}) where {K, V} = dll.list.node.prev.data
+
+
+function show(io :: IO, dll :: DictLinkedList{K, V}) where {K, V}
+    println(io, "DictLinkedList{$K, $V}")
+    println(io, '\t', dll.dict)
+    println(io, '\t', dll.list)
+end
+
+
 # TESTS
 # dll = DictLinkedList{Int, Int}(<=)
 # for i in 0:4
 #     insert!(dll, i, i + 1)
 # end
+# dll |> last |> println
 # filter!(dll, iseven)
 # for x in dll
 #     println(x)
 # end
-# @show contains(dll, 3)

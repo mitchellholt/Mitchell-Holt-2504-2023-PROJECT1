@@ -7,7 +7,6 @@
 #############################################################################
 #############################################################################
 
-
 """
 Test product of polynomials.
 """
@@ -19,7 +18,6 @@ function prod_test_poly_sparse(;N::Int = 10^3, N_prods::Int = 20, seed::Int = 0)
         prod = p1*p2
         @assert leading(prod) == leading(p1)*leading(p2)
     end
-
     for _ in 1:N
         p_base = PolynomialSparse(Term(1,0))
         for _ in 1:N_prods
@@ -29,7 +27,7 @@ function prod_test_poly_sparse(;N::Int = 10^3, N_prods::Int = 20, seed::Int = 0)
             p_base = prod
         end
     end
-    println("prod_test_poly - PASSED")
+    println("prod_test_poly_sparse - PASSED")
 end
 
 """
@@ -44,7 +42,7 @@ function prod_derivative_test_poly_sparse(;N::Int = 10^2,  seed::Int = 0)
         p2d = derivative(p2)
         @assert (p1d*p2) + (p1*p2d) == derivative(p1*p2)
     end
-    println("prod_derivative_test_poly - PASSED")
+    println("prod_derivative_test_poly_sparse - PASSED")
 end
 
 
@@ -73,7 +71,7 @@ function division_test_poly_sparse(;prime::Int = 101, N::Int = 10^4, seed::Int =
         end
         @assert iszero( mod(q*p2+r - p_prod, prime) )
     end
-    println("division_test_poly - PASSED")
+    println("division_test_poly_sparse - PASSED")
 end
 
 """
@@ -87,5 +85,5 @@ function ext_euclid_test_poly_sparse(;prime::Int=101, N::Int = 10^3, seed::Int =
         g, s, t = extended_euclid_alg(p1, p2, prime)
         @assert mod(s*p1 + t*p2 - g, prime) == 0
     end
-    println("ext_euclid_test_poly - PASSED")
+    println("ext_euclid_test_poly_sparse - PASSED")
 end

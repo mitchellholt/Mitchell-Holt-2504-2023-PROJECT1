@@ -9,7 +9,7 @@
 """
 The extended euclid algorithm for polynomials modulo prime.
 """
-function extended_euclid_alg(a :: P, b :: P, prime :: Int) where P <: Union{Polynomial, PolynomialSparse} 
+function extended_euclid_alg(a :: P, b :: P, prime :: Int) where P <: Union{PolynomialDense, PolynomialSparse} 
     old_r, r = mod(a, prime), mod(b, prime)
     old_s, s = one(P), zero(P)
     old_t, t = zero(P), one(P)
@@ -29,6 +29,6 @@ end
 """
 The GCD of two polynomials modulo prime.
 """
-function gcd(a::P, b::P, prime::Int) where P <: Union{Polynomial, PolynomialSparse}
+function gcd(a::P, b::P, prime::Int) where P <: Union{PolynomialDense, PolynomialSparse}
     return extended_euclid_alg(a,b,prime) |> first
 end
