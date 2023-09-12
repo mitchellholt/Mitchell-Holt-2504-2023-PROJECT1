@@ -400,4 +400,58 @@ line 19 is the string concatenation operator. Although converting the input
 \texttt{k} into a string and then mapping each character to a superscript one
 would have worked, this method is much more efficient as no memory is allocated
 for an intermediate string representation of the input.
+
+\bigbreak
+
+\section{Task 2}
+\subsection{PolynomialSparse}
+The \texttt{PolynomialSparse} only stores \emph{non-zero} terms and is defined
+below. We will discuss the \texttt{DictLinkedList} data structure in detail in
+section \ref{dll}.
+
+\begin{codebox}[polynomial\_sparse.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+"""
+Sparse Polynomial type - store only the monomials with non-zero coefficient
+"""
+struct PolynomialSparse
+
+    # DictLinkedList mapping degrees of terms to the term. A polynomial is the
+    # zero polynomial if and only if DictLinkedList is empty
+    terms :: DictLinkedList{Int, Term}
+    
+    #Inner constructor of 0 polynomial
+    PolynomialSparse() = new(DictLinkedList{Int, Term}(isless))
+
+    #Inner constructor of polynomial based on arbitrary list of terms
+    function PolynomialSparse(vt::Vector{Term})
+        terms = DictLinkedList{Int, Term}(isless)
+        for t in vt
+            if iszero(t)
+                continue
+            elseif contains(terms, t.degree)
+                replace!(terms, t.degree, t)
+            else
+                insert!(terms, t.degree, t)
+            end
+        end
+        new(terms)
+    end
+
+    PolynomialSparse(dll :: DictLinkedList{Int, Term}) = new(dll)
+end
+    \end{Verbatim}
+\end{codebox}
+
+Notice in particular that, because we only store non-zero terms inside a sparse
+polynomial, the unique way to represent the zero polynomial is the one where the
+\texttt{terms} field is empty.
+
+\bigbreak
+
+\subsection{DictLinkedList Data Structure} \label{dll}
+
+\bigbreak
+
+\subsection{Discussion}
 \end{document}

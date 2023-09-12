@@ -137,6 +137,21 @@ last(dll :: DictLinkedList{K, V}) where {K, V} = dll.list.node.prev.data
 
 
 """
+Implementation of the Base.map function for DictLinedList
+"""
+function Base.map(f :: Function, dll :: DictLinkedList{K, V}) where {K, V}
+    dll_ = deepcopy(dll)
+    next = iterate(dll_)
+    while next !== nothing
+        (x, current) = next
+        current.data = f(x)
+        next = iterate(dll_, current)
+    end
+    return dll_
+end
+
+
+"""
 Show a DictLinkedList
 """
 function show(io :: IO, dll :: DictLinkedList{K, V}) where {K, V}

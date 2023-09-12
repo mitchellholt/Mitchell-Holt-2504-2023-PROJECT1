@@ -151,7 +151,6 @@ content(p::PolynomialSparse)::Int = euclid_alg(coeffs(p))
 
 """
 Evaluate the polynomial at a point `x`.
-TODO
 """
 evaluate(f::PolynomialSparse, x::T) where T <: Number = sum(evaluate(t,x) for t in f)
 
