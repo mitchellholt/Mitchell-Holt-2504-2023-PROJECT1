@@ -25,12 +25,12 @@ end
 """
 Creates the zero term.
 """
-zero(::Type{Term{I}}) where I <: Integer = Term{I}(0,0)
+zero(::Type{Term{I}}) where I <: Integer = Term{I}(I(0),0)
 
 """
 Creates the unit term.
 """
-one(::Type{Term{I}}) where I <: Integer = Term{I}(1,0)
+one(::Type{Term{I}}) where I <: Integer = Term{I}(I(1),0)
 
 ###########
 # Display #

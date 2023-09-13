@@ -33,7 +33,7 @@ end
 """
 Construct a polynomial with a single term.
 """
-PolynomialSparse_(t::Term{I}) where I <: Integer = PolynomialSparse_{I}([t])
+PolynomialSparse_{I}(t::Term{I}) where I <: Integer = PolynomialSparse_{I}([t])
 
 """
 Construct a polynomial of the form x^p-x.
@@ -52,7 +52,7 @@ end
 """
 Construct a polynomial of the form x.
 """
-x_poly(::Type{PolynomialSparse_{I}}) where I <: Integer = PolynomialSparse_{I}(Term{I}(1,1))
+x_poly(::Type{PolynomialSparse_{I}}) where I <: Integer = PolynomialSparse_{I}(Term{I}(I(1),1))
 
 """
 Creates the zero polynomial.
