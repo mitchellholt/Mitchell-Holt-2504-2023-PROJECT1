@@ -9,7 +9,7 @@
 """
 Add a dense polynomial and a term.
 """
-function +(p::PolynomialDense, t::Term)
+function +(p::PolynomialDense, t::Term{Int})
     p = deepcopy(p)
     if t.degree > degree(p)
         push!(p, t)
@@ -27,7 +27,7 @@ end
 """
 Add a sparse polynomial and a term.
 """
-function +(p::PolynomialSparse, t::Term)
+function +(p::PolynomialSparse_{I}, t::Term{I}) where I <: Integer
     p_out = deepcopy(p)
     if iszero(t)
         return p_out
@@ -45,7 +45,8 @@ function +(p::PolynomialSparse, t::Term)
     end
 end
 
-+(t::Term, p::Union{PolynomialDense, PolynomialSparse}) = p + t
++(t::Term{I}, p::PolynomialSparse_{I}) where I <: Integer = p + t
++(t::Term{Int}, p::PolynomialDense) = p + t
 
 """
 Add two dense polynomials.
@@ -61,10 +62,10 @@ end
 """
 Add two sparse polynomials. We exclusively use heap-like operations for efficiency
 """
-function +(p1 :: PolynomialSparse, p2 :: PolynomialSparse) :: PolynomialSparse
+function +(p1 :: PolynomialSparse_{I}, p2 :: PolynomialSparse_{I}) where I <: Integer
     p1_ = deepcopy(p1)
     p2_ = deepcopy(p2)
-    p = PolynomialSparse()
+    p = PolynomialSparse_{I}()
     while !iszero(p1_) || !iszero(p2_)
         if (degree(p1_) == degree(p2_))
             t = pop!(p1_) + pop!(p2_)
@@ -81,5 +82,7 @@ end
 """
 Add a polynomial and an integer.
 """
-+(p::Union{PolynomialDense, PolynomialSparse}, n::Int) = p + Term(n,0)
-+(n::Int, p::Union{PolynomialDense, PolynomialSparse}) = p + Term(n,0)
++(p :: PolynomialSparse_{I}, n :: I) where I <: Integer = p + Term{I}(n,0)
++(n :: I, p :: PolynomialSparse_{I}) where I <: Integer = p + Term{I}(n,0)
++(p :: PolynomialDense, n :: Int) = p + Term{Int}(n, 0)
++(n :: Int, p :: PolynomialDense) = p + Term{Int}(n, 0)

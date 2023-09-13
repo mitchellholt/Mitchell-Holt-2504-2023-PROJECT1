@@ -11,7 +11,7 @@ Factors a polynomial over the field Z_p.
 
 Returns a vector of tuples of (irreducible polynomials (mod p), multiplicity) such that their product of the list (mod p) is f. Irreducibles are fixed points on the function factor.
 """
-function factor(f :: P, prime :: Int) :: Vector{Tuple{P, Int}} where P <: Union{PolynomialDense, PolynomialSparse}
+function factor(f :: P, prime :: Int) :: Vector{Tuple{P, Int}} where P <: Polynomial
     #Cantor Zassenhaus factorization
 
     f_modp = mod(f, prime)
@@ -52,9 +52,7 @@ end
 """
 Expand a factorization.
 """
-function expand_factorization(
-            factorization :: Vector{Tuple{P, Int}}
-        ) :: P where P <: Union{PolynomialDense, PolynomialSparse}
+function expand_factorization(factorization :: Vector{Tuple{P, Int}}) where P <: Polynomial
     length(factorization) == 1 && return first(factorization[1])^last(factorization[1])
     return *([first(tt)^last(tt) for tt in factorization]...)
 end
@@ -62,7 +60,7 @@ end
 """
 Compute the number of times g divides f
 """
-function multiplicity(f :: P, g :: P, prime :: Int) :: Int where P <: Union{PolynomialDense, PolynomialSparse}
+function multiplicity(f :: P, g :: P, prime :: Int) :: Int where P <: Polynomial
     degree(gcd(f, g, prime)) == 0 && return 0
     return 1 + multiplicity((f ÷ g)(prime), g, prime)
 end
@@ -73,7 +71,7 @@ Distinct degree factorization.
 
 Given a square free polynomial `f` returns a list, `g` such that `g[k]` is a product of irreducible polynomials of degree `k` for `k` in 1,...,degree(f) ÷ 2, such that the product of the list (mod `prime`) is equal to `f` (mod `prime`).
 """
-function dd_factor(f :: P, prime :: Int) :: Array{P} where P <: Union{PolynomialDense, PolynomialSparse}
+function dd_factor(f :: P, prime :: Int) :: Array{P} where P <: Polynomial
     x = x_poly(P)
     w = deepcopy(x)
     g = Array{P}(undef,degree(f)) #Array of polynomials indexed by degree
@@ -96,7 +94,7 @@ end
 Distinct degree split.
 Returns a list of irreducible polynomials of degree `d` so that the product of that list (mod prime) is the polynomial `f`.
 """
-function dd_split(f :: P, d :: Int, prime :: Int) :: Vector{P} where P <: Union{PolynomialDense, PolynomialSparse}
+function dd_split(f :: P, d :: Int, prime :: Int) :: Vector{P} where P <: Polynomial
     f = mod(f,prime)
     degree(f) == d && return [f]
     degree(f) == 0 && return []

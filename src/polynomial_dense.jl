@@ -19,29 +19,29 @@ global lowest_to_highest :: Bool = false
 """
 A PolynomialDense type - designed to be for polynomials with integer coefficients.
 """
-struct PolynomialDense
+struct PolynomialDense <: Polynomial
 
     #A zero packed vector of terms
-    #Terms are assumed to be in order with first term having degree 0, second degree 1, and so fourth
+    #Term{Int}s are assumed to be in order with first term having degree 0, second degree 1, and so fourth
     #until the degree of the polynomial. The leading term (i.e. last) is assumed to be non-zero except 
     #for the zero polynomial where the vector is of length 1.
-    #Note: at positions where the coefficient is 0, the power of the term is also 0 (this is how the Term type is designed)
-    terms::Vector{Term}   
+    #Note: at positions where the coefficient is 0, the power of the term is also 0 (this is how the Term{Int} type is designed)
+    terms::Vector{Term{Int}}   
     
     #Inner constructor of 0 polynomial
-    PolynomialDense() = new([zero(Term)])
+    PolynomialDense() = new([zero(Term{Int})])
 
     #Inner constructor of polynomial based on arbitrary list of terms
-    function PolynomialDense(vt::Vector{Term})
+    function PolynomialDense(vt::Vector{Term{Int}})
 
         #Filter the vector so that there is not more than a single zero term
         vt = filter((t)->!iszero(t), vt)
         if isempty(vt)
-            vt = [zero(Term)]
+            vt = [zero(Term{Int})]
         end
 
         max_degree = maximum((t)->t.degree, vt)
-        terms = [zero(Term) for i in 0:max_degree] #First set all terms with zeros
+        terms = [zero(Term{Int}) for i in 0:max_degree] #First set all terms with zeros
 
         #now update based on the input terms
         for t in vt
@@ -71,23 +71,23 @@ end
 """
 Construct a polynomial with a single term.
 """
-PolynomialDense(t::Term) = PolynomialDense([t])
+PolynomialDense(t::Term{Int}) = PolynomialDense([t])
 
 """
 Construct a polynomial of the form x^p-x.
 """
-cyclotonic_polynomial(p::Int) = PolynomialDense([Term(1,p), Term(-1,0)])
+cyclotonic_polynomial(p::Int) = PolynomialDense([Term{Int}(1,p), Term{Int}(-1,0)])
 
 
 """
 Construct a polynomial of the form x-n.
 """
-linear_monic_polynomial(n::Int) = PolynomialDense([Term(1,1), Term(-n,0)])
+linear_monic_polynomial(n::Int) = PolynomialDense([Term{Int}(1,1), Term{Int}(-n,0)])
 
 """
 Construct a polynomial of the form x.
 """
-x_poly(PolynomialDense) = PolynomialDense(Term(1,1))
+x_poly(PolynomialDense) = PolynomialDense(Term{Int}(1,1))
 
 """
 Creates the zero polynomial.
@@ -97,7 +97,7 @@ zero(::Type{PolynomialDense})::PolynomialDense = PolynomialDense()
 """
 Creates the unit polynomial.
 """
-one(::Type{PolynomialDense})::PolynomialDense = PolynomialDense(one(Term))
+one(::Type{PolynomialDense})::PolynomialDense = PolynomialDense(one(Term{Int}))
 one(p::PolynomialDense) = one(typeof(p))
 
 """
@@ -118,7 +118,7 @@ function rand(::Type{PolynomialDense} ;
         degrees = vcat(sort(sample(0:_degree-1,_terms,replace = false)),_degree)
         coeffs = rand(1:max_coeff,_terms+1)
         monic && (coeffs[end] = 1)
-        p = PolynomialDense( [Term(coeffs[i],degrees[i]) for i in 1:length(degrees)] )
+        p = PolynomialDense( [Term{Int}(coeffs[i],degrees[i]) for i in 1:length(degrees)] )
         condition(p) && return p
     end
 end
@@ -171,7 +171,7 @@ length(p::PolynomialDense) = length(p.terms)
 """
 The leading term of the polynomial.
 """
-leading(p::PolynomialDense)::Term = isempty(p.terms) ? zero(Term) : last(p.terms) 
+leading(p::PolynomialDense)::Term{Int} = isempty(p.terms) ? zero(Term{Int}) : last(p.terms) 
 
 """
 Returns the coefficients of the polynomial.
@@ -201,11 +201,11 @@ evaluate(f::PolynomialDense, x::T) where T <: Number = sum(evaluate(t,x) for t i
 Push a new term into the polynomial.
 """
 #Note that ideally this would throw and error if pushing another term of degree that is already in the polynomial
-function push!(p::PolynomialDense, t::Term) 
+function push!(p::PolynomialDense, t::Term{Int}) 
     if t.degree <= degree(p)
         p.terms[t.degree + 1] = t
     else
-        append!(p.terms, zeros(Term, t.degree - degree(p)-1))
+        append!(p.terms, zeros(Term{Int}, t.degree - degree(p)-1))
         push!(p.terms, t)
     end
     return p        
@@ -214,7 +214,7 @@ end
 """
 Pop the leading term out of the polynomial. When polynomial is 0, keep popping out 0.
 """
-function pop!(p::PolynomialDense)::Term 
+function pop!(p::PolynomialDense)::Term{Int} 
     popped_term = pop!(p.terms) #last element popped is leading coefficient
 
     while !isempty(p.terms) && iszero(last(p.terms))
@@ -222,7 +222,7 @@ function pop!(p::PolynomialDense)::Term
     end
 
     if isempty(p.terms)
-        push!(p.terms, zero(Term))
+        push!(p.terms, zero(Term{Int}))
     end
 
     return popped_term
@@ -231,7 +231,7 @@ end
 """
 Check if the polynomial is zero.
 """
-iszero(p::PolynomialDense)::Bool = p.terms == [Term(0,0)]
+iszero(p::PolynomialDense)::Bool = p.terms == [Term{Int}(0,0)]
 
 #################################################################
 # Transformation of the polynomial to create another polynomial #
@@ -294,13 +294,13 @@ Subtraction of two polynomials.
 """
 Multiplication of polynomial and term.
 """
-*(t::Term, p1::PolynomialDense)::PolynomialDense = iszero(t) ? PolynomialDense() : PolynomialDense(map((pt)->t*pt, p1.terms))
-*(p1::PolynomialDense, t::Term)::PolynomialDense = t*p1
+*(t::Term{Int}, p1::PolynomialDense)::PolynomialDense = iszero(t) ? PolynomialDense() : PolynomialDense(map((pt)->t*pt, p1.terms))
+*(p1::PolynomialDense, t::Term{Int})::PolynomialDense = t*p1
 
 """
 Multiplication of polynomial and an integer.
 """
-*(n::Int, p::PolynomialDense)::PolynomialDense = p*Term(n,0)
+*(n::Int, p::PolynomialDense)::PolynomialDense = p*Term{Int}(n,0)
 *(p::PolynomialDense, n::Int)::PolynomialDense = n*p
 
 """
