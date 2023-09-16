@@ -84,14 +84,12 @@ Only to be use for printing
 """
 abs(x :: ResidueInt) = x.value < 0 ? -x : x
 
-
 """
 Equality of integers up to modulo a prime
 """
 ==(x :: ResidueInt, y :: ResidueInt) = iszero(x - y)
 ==(x :: ResidueInt, y :: I) where I <: Integer = x == ResidueInt(y, x.prime)
 ==(y :: I, x :: ResidueInt) where I <: Integer = x == y
-
 
 """
 Arithmetic operations with integers

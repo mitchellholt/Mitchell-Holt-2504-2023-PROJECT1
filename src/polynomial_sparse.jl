@@ -146,6 +146,7 @@ function show(io::IO, p::PolynomialSparse_{ResidueInt})
             end
             is_first = false
         end
+        print(io, "  (mod $(leading(p).coeff.prime))")
     end
 end
 
