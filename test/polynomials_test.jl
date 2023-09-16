@@ -19,7 +19,7 @@ function prod_test_poly(;N::Int = 10^3, N_prods::Int = 20, seed::Int = 0)
         @assert leading(prod) == leading(p1)*leading(p2)
     end
     for _ in 1:N
-        p_base = PolynomialDense(Term(1,0))
+        p_base = one(PolynomialDense)
         for _ in 1:N_prods
             p = rand(PolynomialDense)
             prod = p_base*p
@@ -86,4 +86,20 @@ function ext_euclid_test_poly(;prime::Int=101, N::Int = 10^3, seed::Int = 0)
         @assert mod(s*p1 + t*p2 - g, prime) == 0
     end
     println("ext_euclid_test_poly - PASSED")
+end
+
+
+"""
+Super sparse polynomials
+
+"""
+function pow_mod_poly(;prime::Int = 19, N::Int = 30, seed::Int = 0)
+    Random.seed!(seed)
+    print("pow_mod_poly\t")
+    for k in 1:N
+        f = rand(PolynomialDense; prob_term = 0.01, mean_degree = Float64(120))
+        @assert leading(pow_mod(f, k, prime)).coeff == pow_mod(leading(f).coeff, k, prime)
+        print(".")
+    end
+    println("\tPASSED")
 end

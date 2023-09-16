@@ -39,14 +39,14 @@ PolynomialSparse_{I}(t::Term{I}) where I <: Integer = PolynomialSparse_{I}([t])
 Construct a polynomial of the form x^p-x.
 """
 function cyclotonic_polynomial(::Type{PolynomialSparse_{I}}, p::Int) where I <: Integer
-    PolynomialSparse_{I}([Term{I}(1,p), Term{I}(-1,0)])
+    return PolynomialSparse_{I}([Term{I}(1,p), Term{I}(-1,0)])
 end
 
 """
 Construct a polynomial of the form x-n.
 """
-function linear_monic_polynomial(::Type{PolynomialSparse_{I}}, n::Int) where I <: Integer
-    PolynomialSparse_{I}([Term{I}(1,1), Term{I}(I(-n),0)])
+function linear_monic_polynomial(::Type{PolynomialSparse_{I}}, n::J) where {I <: Integer, J <: Integer}
+    return PolynomialSparse_{I}([Term{I}(1,1), Term{I}(I(-n),0)])
 end
 
 """
@@ -81,7 +81,7 @@ function rand(::Type{PolynomialSparse_{I}};
         _degree = degree == -1 ? rand(Poisson(mean_degree)) : degree
         _terms = terms == -1 ? rand(Binomial(_degree,prob_term)) : terms
         degrees = vcat(sort(sample(0:_degree-1,_terms,replace = false)),_degree)
-        coeffs = rand(1:max_coeff,_terms+1)
+        coeffs = rand(1:I(max_coeff),_terms+1)
         monic && (coeffs[end] = 1)
         p = PolynomialSparse_{I}([Term{I}(coeffs[i],degrees[i]) for i in 1:length(degrees)])
         condition(p) && return p
@@ -221,7 +221,7 @@ prim_part(p::PolynomialSparse_{I}) where I <: Integer = p ÷ content(p)
 """
 A square free polynomial.
 """
-function square_free(p::PolynomialSparse_{I}, prime::Int) where I <: Integer
+function square_free(p::PolynomialSparse_{I}, prime::J) where {I <: Integer, J <: Integer}
     (p ÷ gcd(p,derivative(p),I(prime)))(I(prime))
 end
 
@@ -273,22 +273,22 @@ end
 """
 Multiplication of polynomial and an integer.
 """
-*(n::Int, p::PolynomialSparse_{I}) where I <: Integer = p*Term{I}(I(n),0)
-*(p::PolynomialSparse_{I}, n::Int) where I <: Integer = n*p
+*(n::J, p::PolynomialSparse_{I}) where {I <: Integer, J <: Integer} = p*Term{I}(I(n),0)
+*(p::PolynomialSparse_{I}, n::J) where {I <: Integer, J <: Integer} = n*p
 
 """
 Integer division of a polynomial by an integer.
 
 Warning this may not make sense if n does not divide all the coefficients of p.
 """
-function ÷(p::PolynomialSparse_{I}, n::Int) where I <: Integer
+function ÷(p::PolynomialSparse_{I}, n::J) where {I <: Integer, J <: Integer}
     return (prime)->PolynomialSparse_{I}(map((pt)->((pt ÷ I(n))(I(prime))), p.terms))
 end
 
 """
 Take the mod of a polynomial with an integer.
 """
-function mod(f :: PolynomialSparse_{I}, p :: Int) where I <: Integer
+function mod(f :: PolynomialSparse_{I}, p :: J) where {I <: Integer, J <: Integer}
     f_out = PolynomialSparse_{I}(map(t -> mod(t, I(p)), f.terms))
     filter!(f_out.terms, t -> !iszero(t))
     return f_out
@@ -297,7 +297,7 @@ end
 """
 Power of a polynomial mod prime.
 """
-function pow_mod(p :: PolynomialSparse_{I}, n::Int, prime::Int) where I <: Integer
+function pow_mod(p :: PolynomialSparse_{I}, n::Int, prime::J) where {I <: Integer, J <: Integer}
     n < 0 && error("No negative power")
     out = one(p)
     for _ in 1:n

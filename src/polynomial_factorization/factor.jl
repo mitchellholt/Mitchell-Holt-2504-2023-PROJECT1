@@ -15,15 +15,16 @@ function factor(f :: P, prime :: Int) :: Vector{Tuple{P, Int}} where P <: Polyno
     #Cantor Zassenhaus factorization
 
     f_modp = mod(f, prime)
-    degree(f_modp) <= 1 && return [(f_modp,1)]
+    degree(f_modp) <= 1 && return [(f_modp, 1)]
 
     # make f primitive
-    ff = prim_part(f_modp)(prime)      
+    ff = prim_part(f_modp)(prime)
     # @show "after prim:", ff, typeof(ff)
 
      # make f square-free
-    squares_poly = gcd(f, derivative(ff), prime) 
-    ff = (ff ÷ squares_poly)(prime) 
+    squares_poly = gcd(f, derivative(ff), prime)
+    # @show squares_poly, typeof(squares_poly)
+    ff = (ff ÷ squares_poly)(prime)
     # @show "after square free:", ff, typeof(ff)
 
     # make f monic

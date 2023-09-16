@@ -23,7 +23,7 @@ function extended_euclid_alg(a :: P, b :: P, prime :: Int) where P <: Polynomial
     g, s, t = old_r, old_s, old_t
 
     @assert mod(s*a + t*b - g, prime) == 0
-    return g, s, t  
+    return g, s, t
 end
 
 """

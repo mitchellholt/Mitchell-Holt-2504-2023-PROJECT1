@@ -34,7 +34,7 @@ function divide(num :: PolynomialDense, den :: PolynomialDense)
 end
 
 function divide(num :: PolynomialSparse_{I}, den :: PolynomialSparse_{I}) where I <: Integer
-    function division_function(prime::Int)
+    function division_function(prime::J) where J <: Integer
         p = I(prime)
         f, g = mod(num,p), mod(den,p)
         degree(f) < degree(num) && return nothing 
@@ -57,12 +57,12 @@ end
 The quotient from polynomial division. Returns a function of an integer.
 """
 function ÷(num :: P, den :: P) where P <: Polynomial
-    return (p :: Int) -> divide(num,den)(p) |> first
+    return p -> first(divide(num,den)(p))
 end
 
 """
 The remainder from polynomial division. Returns a function of an integer.
 """
 function rem(num :: P, den :: P) where P <: Polynomial
-     return (p :: Int) -> divide(num,den)(p) |> last
+    return p -> last(divide(num,den)(p))
  end

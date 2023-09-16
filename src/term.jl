@@ -16,7 +16,7 @@ A term.
 struct Term{I}
     coeff :: I
     degree :: Int
-    function Term{I}(coeff::Int, degree::I) where I <: Integer
+    function Term{I}(coeff::I, degree::Int) where I <: Integer
         degree < 0 && error("Degree must be non-negative")
         coeff != 0 ? new(coeff,degree) : new(coeff,0)
     end
@@ -104,7 +104,9 @@ end
 """
 Compute the symmetric mod of a term with an integer.
 """
-mod(t::Term{I}, p::Int) where I <: Integer = Term{I}(mod(t.coeff,p), t.degree)
+function mod(t::Term{I}, p::J) where {I <: Integer, J <: Integer}
+    return Term{I}(mod(t.coeff, I(p)), t.degree)
+end
 
 """
 Compute the derivative of a term.
@@ -116,10 +118,10 @@ Divide two terms. Returns a function of an integer.
 """
 function ÷(t1::Term{I},t2::Term{I}) where I <: Integer
     @assert t1.degree ≥ t2.degree
-    f(p::Int) = Term{I}(mod((t1.coeff * int_inverse_mod(t2.coeff, p)), p), t1.degree - t2.degree)
+    f(p::J) where J <: Integer = Term{I}(mod((t1.coeff * int_inverse_mod(t2.coeff, I(p))), I(p)), t1.degree - t2.degree)
 end
 
 """
 Integer divide a term by an integer.
 """
-÷(t::Term{I}, n::Int) where I <: Integer = t ÷ Term{I}(n,0)
+÷(t::Term{I}, n::J) where {I <: Integer, J <: Integer} = t ÷ Term{I}(I(n),0)

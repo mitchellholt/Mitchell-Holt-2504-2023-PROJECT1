@@ -48,6 +48,18 @@ function ext_euclid_alg(a, b, rem_function = %, div_function = ÷)
 end
 
 """
+Raise an integer to a power modulo a prime
+"""
+function pow_mod(k :: I, n :: Int, prime :: J) where {I <: Integer, J <: Integer}
+    res = 1
+    while n > 0
+        res = (res * k) % I(prime)
+        n -= 1
+    end
+    return res
+end
+
+"""
 Display the result of the extended Euclidean algorithm.
 """
 pretty_print_egcd((a,b),(g,s,t)) = println("$a × $s + $b × $t = $g") #\times + [TAB]
@@ -55,7 +67,7 @@ pretty_print_egcd((a,b),(g,s,t)) = println("$a × $s + $b × $t = $g") #\times +
 """
 Integer inverse symmetric mod
 """
-function int_inverse_mod(a::Int, m::Int)::Int 
+function int_inverse_mod(a :: I, m :: I) where I <: Integer
     if mod(a, m) == 0
         error("Can't find inverse of $a mod $m because $m divides $a") 
     end
