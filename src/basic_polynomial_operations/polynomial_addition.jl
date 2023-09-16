@@ -39,7 +39,7 @@ function +(p::PolynomialSparse_{I}, t::Term{I}) where I <: Integer
         term = t + lookup(p.terms, t.degree)
         # Make sure we haven't just added a zero term
         if !iszero(term)
-            replace!(p_out.terms, term.degree)
+            replace!(p_out.terms, term.degree, term)
         end
         return p_out
     end
@@ -82,8 +82,9 @@ end
 """
 Add a polynomial and an integer.
 """
-function +(p :: PolynomialModP, n :: I, prime :: Int) where I <: Integer
-    return p + Term{ResidueInt}(ReidueInt(n, prime), 0)
+function +(p :: PolynomialModP, n :: I) where I <: Integer
+    prime = leading(p).coeff.prime
+    return p + (n * one(Term{ResidueInt}, prime))
 end
 +(p :: PolynomialSparse_{I}, n :: I) where I <: Integer = p + Term{I}(n,0)
 +(n :: I, p :: PolynomialSparse_{I}) where I <: Integer = p + Term{I}(n,0)

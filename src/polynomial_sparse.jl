@@ -99,7 +99,8 @@ function rand(::Type{PolynomialSparse_{ResidueInt}}, prime :: I;
         degrees = vcat(sort(sample(0:_degree-1,_terms,replace = false)),_degree)
         coeffs = [ResidueInt(n, prime) for n in rand(1:(prime - 1),_terms+1)]
         monic && (coeffs[end] = one(ResidueInt, prime))
-        p = PolynomialSparse_{ResidueInt}([Term{I}(coeffs[i],degrees[i]) for i in 1:length(degrees)])
+        p = PolynomialSparse_{ResidueInt}(
+            [Term{ResidueInt}(coeffs[i],degrees[i]) for i in 1:length(degrees)])
         condition(p) && return p
     end
 end
@@ -130,6 +131,24 @@ end
 """
 Show a polynomial.
 """
+function show(io::IO, p::PolynomialSparse_{ResidueInt})
+    if iszero(p)
+        print(io,"0")
+    else
+        is_first = true
+        n = length(p.terms)
+        term_list = lowest_to_highest ? p.terms : p.terms |> collect |> reverse
+        for t in term_list
+            if is_first
+                print(io, t.coeff.value < 0 ? "-" : "", t)
+            else
+                print(io, t.coeff.value < 0 ? " - " : " + ", t)
+            end
+            is_first = false
+        end
+    end
+end
+
 function show(io::IO, p::PolynomialSparse_{I}) where I <: Integer
     if iszero(p)
         print(io,"0")

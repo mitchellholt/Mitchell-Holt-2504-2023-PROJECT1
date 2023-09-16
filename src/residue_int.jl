@@ -1,7 +1,7 @@
 """
 Representation of an integer modulo a prime
 """
-mutable struct ResidueInt <: Integer
+struct ResidueInt <: Integer
     # Prime used to construct the field of residue classes
     prime :: Int
     # Value mod prime
@@ -12,6 +12,10 @@ mutable struct ResidueInt <: Integer
     end
 end
 
+"""
+Give the smallest strictly positive representative of the equivalence class
+"""
+positive_value(x :: ResidueInt) = x.value < 0 ? ResidueInt(x.value + x.prime, x.prime) : x
 
 """
 Show the canonical representative of the int
@@ -35,18 +39,10 @@ one(::Type{ResidueInt}, prime :: Int) = ResidueInt(1, prime)
 iszero(x :: ResidueInt) = x.value == 0
 
 """
-Equality of integers up to modulo a prime
-"""
-==(x :: ResidueInt, y :: ResidueInt) = (@assert x.prime == y.prime; abs(x.value) == abs(y.value))
-==(x :: ResidueInt, y :: I) where I <: Integer = abs(x.value) == abs(y % x.prime)
-==(y :: I, x :: ResidueInt) where I <: Integer = x == y
-
-"""
 ResidueInt acts kind of like a functor (loosely; it's not quite polymorphic
 enough) so we may define fmap
 """
 fmap(f :: Function, x :: ResidueInt) = ResidueInt(f(x.value), x.prime)
-
 
 """
 Basic arithmetic operations
@@ -82,7 +78,19 @@ end
 
 -(x :: ResidueInt, y :: ResidueInt) = x + (-y)
 
-Base.abs(x :: ResidueInt) = fmap(Base.abs, x)
+
+"""
+Only to be use for printing
+"""
+abs(x :: ResidueInt) = x.value < 0 ? -x : x
+
+
+"""
+Equality of integers up to modulo a prime
+"""
+==(x :: ResidueInt, y :: ResidueInt) = iszero(x - y)
+==(x :: ResidueInt, y :: I) where I <: Integer = x == ResidueInt(y, x.prime)
+==(y :: I, x :: ResidueInt) where I <: Integer = x == y
 
 
 """
