@@ -725,4 +725,77 @@ We furthermore define type aliases
 \bigbreak
 
 \subsection{Tests}
+The tests for \texttt{PolynomialSparse128} are identical to those for
+\texttt{PolynomialSparse} and \texttt{PolynomialDense}, but with an added test
+which provides an example of an operation that would overflow on a 64-bit
+integer, but not on 128-bit integer:
+
+\begin{codebox}[test/polynomial\_sparse128\_test.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function overflow_poly_sparse_128()
+    x = x_poly(PolynomialSparse128)
+    f = Int128(2^50) * x
+    @assert leading(f^2).coeff == (leading(f).coeff)^2
+end
+    \end{Verbatim}
+\end{codebox}
+
+\bigbreak
+
+\subsection{Runtime Performance}
+Consider the following output from running the tests for both
+\texttt{PolynomialSparse} and \texttt{PolynomialSparse128} with the \texttt{@time}
+macro (all output from \texttt{@time} except the running time has been manually
+removed):
+
+\begin{Verbatim}
+    ######################################
+    # Sparse polynomial tests #
+    ######################################
+    prod_test_poly_sparse - PASSED
+     75.498524 seconds
+    prod_derivative_test_poly_sparse - PASSED
+      0.040331 seconds
+    ext_euclid_test_poly_sparse - PASSED
+      3.439180 seconds
+    division_test_poly_sparse - PASSED
+     10.786113 seconds
+
+    doing prime = 5 	..........
+    doing prime = 17 	..........
+    doing prime = 19 	..........
+    factor_test_poly_sparse - PASSED
+     15.101744 seconds
+    pow_mod_poly_sparse	..............................	PASSED
+     17.842930 seconds
+
+
+
+    ######################################
+    # 128-bit Sparse polynomial tests #
+    ######################################
+    prod_test_poly_sparse_128 - PASSED
+     75.670094 seconds
+    prod_derivative_test_poly_sparse_128 - PASSED
+      0.039650 seconds
+    ext_euclid_test_poly_sparse_128 - PASSED
+      3.547918 seconds
+    division_test_poly_sparse_128 - PASSED
+     10.966848 seconds
+
+    doing prime = 5 	..........
+    doing prime = 17 	..........
+    doing prime = 19 	..........
+    factor_test_poly_sparse_128 - PASSED
+     12.451121 seconds
+    pow_mod_poly_sparse_128	..............................	PASSED
+     17.090768 seconds
+\end{Verbatim}
+It is clear that there is no significant runtime cost associated with using
+128-bit coefficients, which is reasonable because each term with a 128-bit
+coefficent is only 1 word larger than one using a 64-bit coefficient.
+
+\bigbreak
+
+\section{Task 4}
 \end{document}

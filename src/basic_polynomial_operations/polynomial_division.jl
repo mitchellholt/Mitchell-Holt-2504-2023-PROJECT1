@@ -33,6 +33,23 @@ function divide(num :: PolynomialDense, den :: PolynomialDense)
     return division_function
 end
 
+function divide(num :: PolynomialModP, den :: PolynomialModP)
+    f = deepcopy(num)
+    g = den
+    iszero(g) && throw(DivideError())
+    q = PolynomialModP()
+    prev_degree = degree(f)
+    while degree(f) >= degree(g) 
+        h = PolynomialModP(leading(f) ÷ leading(g))
+        f = f - h*g
+        q += h
+        prev_degree == degree(f) && break
+        prev_degree = degree(f)
+    end
+    @assert iszero(num  - (q*g + f))
+    return q, f
+end
+
 function divide(num :: PolynomialSparse_{I}, den :: PolynomialSparse_{I}) where I <: Integer
     function division_function(prime::J) where J <: Integer
         p = I(prime)

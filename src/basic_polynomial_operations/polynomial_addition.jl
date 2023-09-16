@@ -82,6 +82,9 @@ end
 """
 Add a polynomial and an integer.
 """
+function +(p :: PolynomialModP, n :: I, prime :: Int) where I <: Integer
+    return p + Term{ResidueInt}(ReidueInt(n, prime), 0)
+end
 +(p :: PolynomialSparse_{I}, n :: I) where I <: Integer = p + Term{I}(n,0)
 +(n :: I, p :: PolynomialSparse_{I}) where I <: Integer = p + Term{I}(n,0)
 +(p :: PolynomialDense, n :: Int) = p + Term{Int}(n, 0)

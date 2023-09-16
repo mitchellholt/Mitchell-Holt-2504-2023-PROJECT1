@@ -13,7 +13,9 @@ import Base: push!, pop!, iszero, show, isless, map, map!, iterate, length, last
 import Base: +, -, *, mod, %, ÷, ==, ^, rand, rem, zero, one
 
 include("src/general_alg.jl")
+include("src/residue_int.jl")
 include("src/term.jl")
+include("src/dict_linked_list.jl")
 
 # Abstract polynomial type
 abstract type Polynomial end
@@ -24,6 +26,7 @@ include("src/polynomial_sparse.jl")
 # Type aliases
 const PolynomialSparse = PolynomialSparse_{Int}
 const PolynomialSparse128 = PolynomialSparse_{Int128}
+const PolynomialModP = PolynomialSparse_{ResidueInt}
 
 include("src/basic_polynomial_operations/polynomial_addition.jl")
 include("src/basic_polynomial_operations/polynomial_multiplication.jl")

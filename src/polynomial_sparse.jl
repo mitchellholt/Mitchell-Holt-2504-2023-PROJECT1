@@ -1,5 +1,3 @@
-include("dict_linked_list.jl")
-
 """
 Sparse Polynomial type - store only the monomials with non-zero coefficient
 """
@@ -38,6 +36,11 @@ PolynomialSparse_{I}(t::Term{I}) where I <: Integer = PolynomialSparse_{I}([t])
 """
 Construct a polynomial of the form x^p-x.
 """
+function cyclotonic_polynomial(::Type{PolynomialSparse_{ResidueInt}}, p::Int)
+    return PolynomialSparse_{I}([
+        Term{ResidueInt}(ResidueInt(1, p), p),
+        Term{ResidueInt}(ResidueInt(-1, p), 0)])
+end
 function cyclotonic_polynomial(::Type{PolynomialSparse_{I}}, p::Int) where I <: Integer
     return PolynomialSparse_{I}([Term{I}(1,p), Term{I}(-1,0)])
 end
@@ -45,6 +48,11 @@ end
 """
 Construct a polynomial of the form x-n.
 """
+function linear_monic_polynomial(::Type{PolynomialSparse_{ResidueInt}}, n::I, prime :: J) where {I <: Integer, J <: Integer}
+    return PolynomialSparse_{I}([
+        Term{ResidueInt}(ResidueInt(1, p), 1),
+        Term{ResidueInt}(ResidueInt(-n, p), 0)])
+end
 function linear_monic_polynomial(::Type{PolynomialSparse_{I}}, n::J) where {I <: Integer, J <: Integer}
     return PolynomialSparse_{I}([Term{I}(1,1), Term{I}(I(-n),0)])
 end
@@ -52,6 +60,9 @@ end
 """
 Construct a polynomial of the form x.
 """
+function x_poly(::Type{PolynomialSparse_{ResidueInt}}, p :: Int)
+    return PolynomialSparse_{ResidueInt}(Term{ResidueInt}(ResidueInt(1, p), 1))
+end
 x_poly(::Type{PolynomialSparse_{I}}) where I <: Integer = PolynomialSparse_{I}(Term{I}(I(1),1))
 
 """
@@ -62,12 +73,36 @@ zero(::Type{PolynomialSparse_{I}}) where I <: Integer = PolynomialSparse_{I}()
 """
 Creates the unit polynomial.
 """
+function one(::Type{PolynomialSparse_{ResidueInt}}, p :: I) where I <: Integer
+    PolynomialSparse_{ResidueInt}(one(Term{ResidueInt}, p))
+end
+function one(p::PolynomialSparse_{ResidueInt}, prime :: I) where I <: Integer
+    one(PolynomialSparse_{ResidueInt}, prime)
+end
 one(::Type{PolynomialSparse_{I}}) where I <: Integer = PolynomialSparse_{I}(one(Term{I}))
 one(p::PolynomialSparse_{I}) where I <: Integer = one(PolynomialSparse_{I})
 
 """
 Generates a random polynomial.
 """
+function rand(::Type{PolynomialSparse_{ResidueInt}}, prime :: I;
+              degree::Int = -1,
+              terms::Int = -1,
+              mean_degree::Float64 = 5.0,
+              prob_term::Float64  = 0.7,
+              monic = false,
+              condition = (p)->true) where I <: Integer
+
+    while true
+        _degree = degree == -1 ? rand(Poisson(mean_degree)) : degree
+        _terms = terms == -1 ? rand(Binomial(_degree,prob_term)) : terms
+        degrees = vcat(sort(sample(0:_degree-1,_terms,replace = false)),_degree)
+        coeffs = [ResidueInt(n, prime) for n in rand(1:(prime - 1),_terms+1)]
+        monic && (coeffs[end] = one(ResidueInt, prime))
+        p = PolynomialSparse_{ResidueInt}([Term{I}(coeffs[i],degrees[i]) for i in 1:length(degrees)])
+        condition(p) && return p
+    end
+end
 function rand(::Type{PolynomialSparse_{I}};
               degree::Int = -1,
               terms::Int = -1,
@@ -137,6 +172,9 @@ length(p::PolynomialSparse_{I}) where I <: Integer = length(p.terms)
 """
 The leading term of the polynomial.
 """
+function leading(p::PolynomialSparse_{ResidueInt}, prime :: I) where I <: Integer
+    return isempty(p.terms) ? zero(Term{I}, prime) : last(p.terms)
+end
 function leading(p::PolynomialSparse_{I}) where I <: Integer
     return isempty(p.terms) ? zero(Term{I}) : last(p.terms)
 end
@@ -152,7 +190,9 @@ The degree of the polynomial.
 degree(p::PolynomialSparse_{I}) where I <: Integer = leading(p).degree 
 
 """
-The content of the polynomial is the GCD of its coefficients.
+The content of the polynomial is the GCD of its coefficients. Note that this
+does not make sense over a field (since the content of any non-zero polynomial
+would be 1)
 """
 content(p::PolynomialSparse_{I}) where I <: Integer = euclid_alg(coeffs(p))
 
@@ -175,6 +215,14 @@ push!(p::PolynomialSparse_{I}, t::Term{I}) where I <: Integer = insert!(p.terms,
 """
 Pop the leading term out of the polynomial. When polynomial is 0, keep popping out 0.
 """
+function pop!(p::PolynomialSparse_{ResidueInt}, prime :: I) where I <: Integer
+    if iszero(p)
+        return zero(Term{ResidueInt}, prime)
+    end
+    term = leading(p)
+    remove!(p.terms, term.degree)
+    return term
+end
 function pop!(p::PolynomialSparse_{I}) where I <: Integer
     if iszero(p)
         return zero(Term{I})
@@ -189,6 +237,11 @@ Check if the polynomial is zero.
 """
 iszero(p::PolynomialSparse_{I}) where I <: Integer = p.terms |> empty
 
+"""
+Get the prime used to construct the underlying coefficient field for a polynomial
+"""
+underlying_prime(p :: PolynomialSparse_{ResidueInt}) :: Int = leading(p).coeff.prime
+
 #################################################################
 # Transformation of the polynomial to create another polynomial #
 #################################################################
@@ -201,7 +254,10 @@ function -(p::PolynomialSparse_{I}) where I <: Integer
 end
 
 """
-Create a new polynomial which is the derivative of the polynomial.
+Create a new polynomial which is the derivative of the polynomial. This doesn't
+really make sense for a polynomial over a field of residue classes of the
+integers modulo a prime, but doing a mod operation before or after taking a
+derivative makes no difference.
 """
 function derivative(p::PolynomialSparse_{I}) where I <: Integer
     der_p = PolynomialSparse_{I}()
@@ -215,12 +271,14 @@ end
 """
 The prim part (multiply a polynomial by the inverse of its content).
 """
+prim_part(p::PolynomialSparse_{ResidueInt}) = p
 prim_part(p::PolynomialSparse_{I}) where I <: Integer = p ÷ content(p)
 
 
 """
 A square free polynomial.
 """
+square_free(p::PolynomialSparse_{ResidueInt}) = p ÷ gcd(p, derivative(p))
 function square_free(p::PolynomialSparse_{I}, prime::J) where {I <: Integer, J <: Integer}
     (p ÷ gcd(p,derivative(p),I(prime)))(I(prime))
 end
@@ -273,14 +331,28 @@ end
 """
 Multiplication of polynomial and an integer.
 """
-*(n::J, p::PolynomialSparse_{I}) where {I <: Integer, J <: Integer} = p*Term{I}(I(n),0)
+function *(n::J, p::PolynomialSparse_{I}) where {I <: Integer, J <: Integer}
+    if iszero(n) || iszero(p)
+        return PolynomialSparse_{I}()
+    end
+    p = PolynomialSparse_{I}()
+    for term in p1
+        t = n * term
+        # Check for zero again in case we are working over Z/p
+        iszero(t) ? continue : push!(p, t)
+    end
+    return p
+end
 *(p::PolynomialSparse_{I}, n::J) where {I <: Integer, J <: Integer} = n*p
 
 """
 Integer division of a polynomial by an integer.
-
 Warning this may not make sense if n does not divide all the coefficients of p.
+Return a function if we are not working over a field
 """
+function ÷(p::PolynomialSparse_{ResidueInt}, n::I) where I <: Integer
+    return map(pt -> pt ÷ n, p.terms)
+end
 function ÷(p::PolynomialSparse_{I}, n::J) where {I <: Integer, J <: Integer}
     return (prime)->PolynomialSparse_{I}(map((pt)->((pt ÷ I(n))(I(prime))), p.terms))
 end
@@ -288,6 +360,9 @@ end
 """
 Take the mod of a polynomial with an integer.
 """
+function mod(f :: PolynomialSparse_{ResidueInt}, p :: I) where I <: Integer
+    error("Cannot take mod in a field constructed using mod")
+end
 function mod(f :: PolynomialSparse_{I}, p :: J) where {I <: Integer, J <: Integer}
     f_out = PolynomialSparse_{I}(map(t -> mod(t, I(p)), f.terms))
     filter!(f_out.terms, t -> !iszero(t))
@@ -297,6 +372,9 @@ end
 """
 Power of a polynomial mod prime.
 """
+function pow_mod(p :: PolynomialSparse_{ResidueInt}, n::Int, prime::I) where I <: Integer
+    error("Cannot take mod in a field constructed using mod")
+end
 function pow_mod(p :: PolynomialSparse_{I}, n::Int, prime::J) where {I <: Integer, J <: Integer}
     n < 0 && error("No negative power")
     out = one(p)
