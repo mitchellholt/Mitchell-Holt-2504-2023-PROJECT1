@@ -103,3 +103,12 @@ function pow_mod_poly_sparse_128(;prime::Int = 19, N::Int = 30, seed::Int = 0)
     end
     println("\tPASSED")
 end
+
+"""
+Test using integer arithmetic which would overflow in the PolynomialSparse type
+"""
+function overflow_poly_sparse_128()
+    x = x_poly(PolynomialSparse128)
+    f = Int128(2^50) * x
+    @assert leading(f^2).coeff == (leading(f).coeff)^2
+end
