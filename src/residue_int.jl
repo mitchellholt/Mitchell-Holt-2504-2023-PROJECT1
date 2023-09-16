@@ -32,11 +32,12 @@ Unit and zero constructors
 """
 zero(::Type{ResidueInt}, prime :: Int) = ResidueInt(0, prime)
 one(::Type{ResidueInt}, prime :: Int) = ResidueInt(1, prime)
+iszero(x :: ResidueInt) = x.value == 0
 
 """
 Equality of integers up to modulo a prime
 """
-==(x :: ResidueInt, y :: ResidueInt) = x.prime == y.prime && abs(x.value) == abs(y.value)
+==(x :: ResidueInt, y :: ResidueInt) = (@assert x.prime == y.prime; abs(x.value) == abs(y.value))
 ==(x :: ResidueInt, y :: I) where I <: Integer = abs(x.value) == abs(y % x.prime)
 ==(y :: I, x :: ResidueInt) where I <: Integer = x == y
 
@@ -81,7 +82,7 @@ end
 
 -(x :: ResidueInt, y :: ResidueInt) = x + (-y)
 
-abs(x :: ResidueInt) = fmap(abs, x)
+Base.abs(x :: ResidueInt) = fmap(Base.abs, x)
 
 
 """
@@ -97,3 +98,16 @@ Arithmetic operations with integers
 -(y :: I, x :: ResidueInt) where I <: Integer = ResidueInt(y, x.prime) - x
 
 ÷(x :: ResidueInt, y :: I) where I <: Integer = x ÷ ResidueInt(y, x.prime)
+
+function ^(x :: ResidueInt, y :: I) where I <: Integer
+    iszero(x) && return deepcopy(x)
+    y < 0 && return inverse(x) ^ (-y)
+    ret = one(ResidueInt, x.prime)
+    d = y
+    while d > 0
+        ret *= x
+        d -= 1
+        ret == 1 && return x^(y % (y - d)) # x^(y - d) = 1
+    end
+    return ret
+end

@@ -14,6 +14,7 @@ include("integers_test.jl")
 include("polynomials_test.jl")
 include("polynomial_sparse_test.jl")
 include("polynomial_sparse128_test.jl")
+include("polynomial_mod_p_test.jl")
 include("factorization_test.jl")
 
 ####
@@ -21,6 +22,19 @@ include("factorization_test.jl")
 ###
 # test_euclid_ints()
 # test_ext_euclid_ints()
+
+####
+# Execute unit tests for polynomials mod p
+####
+println("\n\n")
+println("######################################")
+println("# Polynomial mod p tests #")
+println("######################################")
+@time prod_test_poly_mod_p()
+@time prod_derivative_test_poly_mod_p()
+@time ext_euclid_test_poly_mod_p()
+@time division_test_poly_mod_p()
+@time pow_mod_poly_mod_p()
 
 ####
 # Execute unit tests for dense polynomials and factorization
