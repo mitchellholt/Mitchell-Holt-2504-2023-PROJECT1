@@ -34,10 +34,11 @@ function divide(num :: PolynomialDense, den :: PolynomialDense)
 end
 
 function divide(num :: PolynomialModP, den :: PolynomialModP)
+    @assert num.prime == den.prime
     f = deepcopy(num)
     g = den
     iszero(g) && throw(DivideError())
-    q = PolynomialModP()
+    q = zero(num)
     prev_degree = degree(f)
     while degree(f) >= degree(g) 
         h = PolynomialModP(leading(f) ÷ leading(g))

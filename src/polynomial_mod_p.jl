@@ -230,7 +230,7 @@ integers modulo a prime, but doing a mod operation before or after taking a
 derivative makes no difference.
 """
 function derivative(p::PolynomialModP)
-    der_p = PolynomialModP()
+    der_p = zero(p)
     for term in p
         der_term = derivative(term)
         !iszero(der_term) && push!(der_p, der_term)

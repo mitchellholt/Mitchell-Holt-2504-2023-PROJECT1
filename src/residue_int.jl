@@ -64,14 +64,14 @@ end
 
 function inverse(x :: ResidueInt)
     @assert !iszero(x)
-    g, t, _ = ext_euclid_alg(x.value, x.prime)
-    @assert g == 1
+    g, t, s = ext_euclid_alg(x.value, x.prime)
+    @assert Base.abs(g) == 1
     return ResidueInt(t, x.prime)
 end
 
 function ÷(x :: ResidueInt, y :: ResidueInt)
     @assert x.prime == y.prime
-    return ResidueInt(x.value * inverse(y), y.prime)
+    return x * inverse(y)
 end
 
 -(x :: ResidueInt) = fmap(-, x)
