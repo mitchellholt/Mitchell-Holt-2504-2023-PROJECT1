@@ -67,6 +67,10 @@ iszero(t :: Term{I}) where I <: Integer = iszero(t.coeff)
 Compare two terms. We pinky promise to only call this on Term{ResidueInt} when
 we only care about ordering by degree
 """
+function isless(t1::Term{ResidueInt},t2::Term{ResidueInt})
+    return t1.degree < t2.degree
+end
+
 function isless(t1::Term{I},t2::Term{I}) where I <: Integer
     return t1.degree == t2.degree ? (t1.coeff < t2.coeff) : (t1.degree < t2.degree)  
 end

@@ -13,7 +13,7 @@ struct PolynomialModP <: Polynomial
         DictLinkedList{Int, Term{ResidueInt}}(isless), prime)
 
     #Inner constructor of polynomial based on arbitrary list of terms
-    function PolynomialModP(prime :: Int, vt::Vector{Term{ResidueInt}})
+    function PolynomialModP(vt::Vector{Term{ResidueInt}}, prime :: Int)
         terms = DictLinkedList{Int, Term{ResidueInt}}(isless)
         for t in vt
             if iszero(t)
@@ -27,7 +27,7 @@ struct PolynomialModP <: Polynomial
         new(terms, prime)
     end
 
-    function PolynomialModP(prime :: Int, vt::Vector{Term{I}}) where I <: Integer
+    function PolynomialModP(vt::Vector{Term{I}}, prime :: Int) where I <: Integer
         terms = DictLinkedList{Int, Term{ResidueInt}}(isless)
         for t in map(term -> Term{ResidueInt}(
                 ResidueInt(term.coeff, prime), term.degree), vt)
@@ -81,6 +81,7 @@ end
 Creates the zero polynomial.
 """
 zero(::Type{PolynomialModP}, prime) = PolynomialModP(prime)
+zero(p :: PolynomialModP) = PolynomialModP(p.prime)
 
 """
 Creates the unit polynomial.

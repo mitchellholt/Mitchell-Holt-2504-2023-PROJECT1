@@ -22,6 +22,7 @@ abstract type Polynomial end
 
 include("src/polynomial_dense.jl")
 include("src/polynomial_sparse.jl")
+include("src/polynomial_mod_p.jl")
 
 # Type aliases
 const PolynomialSparse = PolynomialSparse_{Int}

@@ -10,7 +10,7 @@
 Multiply two polynomials.
 """
 function *(p1 :: P, p2 :: P) :: P where P <: Polynomial
-    p_out = P()
+    p_out = zero(p1)
     for t in p1
         new_summand = (t * p2)
         p_out = p_out + new_summand

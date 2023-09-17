@@ -64,7 +64,7 @@ function +(p::PolynomialModP, t::Term{ResidueInt})
 end
 
 +(t::Term{I}, p::PolynomialSparse_{I}) where I <: Integer = p + t
-+(t::Term{ResdiueInt}, p::PolynomialModP) = p + t
++(t::Term{ResidueInt}, p::PolynomialModP) = p + t
 +(t::Term{Int}, p::PolynomialDense) = p + t
 
 """
