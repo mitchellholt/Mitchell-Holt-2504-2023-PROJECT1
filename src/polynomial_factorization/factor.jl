@@ -15,9 +15,9 @@ on the function factor.
 """
 function factor(f :: PolynomialModP) :: Vector{Tuple{PolynomialModP, Int}}
     #Cantor Zassenhaus factorization
-    degree(f) <= 1 && return [(f_modp, 1)]
+    degree(f) <= 1 && return [(f, 1)]
 
-     # make f square-free
+    # make f square-free
     squares_poly = gcd(f, derivative(ff))
     # @show squares_poly, typeof(squares_poly)
     ff = f ÷ squares_poly
@@ -41,7 +41,7 @@ function factor(f :: PolynomialModP) :: Vector{Tuple{PolynomialModP, Int}}
     end
 
     #Append the leading coefficient as well
-    push!(ret_val, (leading(f).coeff* one(PolynomialModP, prime), 1))
+    push!(ret_val, (leading(f).coeff * one(f), 1))
 
     return ret_val
 end
@@ -115,8 +115,7 @@ product of irreducible polynomials of degree `k` for `k` in 1,...,degree(f) ÷ 2
 such that the product of the list (mod `prime`) is equal to `f` (mod `prime`).
 """
 function dd_factor(f :: PolynomialModP) :: Array{PolynomialModP}
-    prime = underlying_prime(f)
-    x = x_poly(PolynomialModP, prime)
+    x = x_poly(PolynomialModP, f.prime)
     w = deepcopy(x)
     g = Array{PolynomialModP}(undef,degree(f)) #Array of polynomials indexed by degree
 
@@ -127,9 +126,8 @@ function dd_factor(f :: PolynomialModP) :: Array{PolynomialModP}
         f = f ÷ g[k]
     end
 
-
     #edge case for final factor
-    f != one(PolynomialModP, prime) && push!(g,f)
+    f != one(f) && push!(g,f)
 
     return g
 end
@@ -160,10 +158,9 @@ Returns a list of irreducible polynomials of degree `d` so that the product of t
 function dd_split(f :: PolynomialModP, d :: Int) :: Vector{PolynomialModP}
     degree(f) == d && return [f]
     degree(f) == 0 && return []
-    prime = underlying_prime(f)
     w = rand(PolynomialModP, degree = d, monic = true)
-    n_power = (prime^d - 1) ÷ 2
-    g = gcd(w^n_power - one(PolynomialModP, prime), f)
+    n_power = ((f.prime)^d - 1) ÷ 2
+    g = gcd(w^n_power - one(f), f)
     ḡ = f ÷ g
     return vcat(dd_split(g, d), dd_split(ḡ, d))
 end

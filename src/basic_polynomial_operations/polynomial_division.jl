@@ -73,6 +73,10 @@ end
 """
 The quotient from polynomial division. Returns a function of an integer.
 """
+function ÷(num :: PolynomialModP, den :: PolynomialModP)
+    first(divide(num, den))
+end
+
 function ÷(num :: P, den :: P) where P <: Polynomial
     return p -> first(divide(num,den)(p))
 end
@@ -80,6 +84,10 @@ end
 """
 The remainder from polynomial division. Returns a function of an integer.
 """
+function rem(num :: PolynomialModP, den :: PolynomialModP)
+    last(divide(num,den))
+ end
+
 function rem(num :: P, den :: P) where P <: Polynomial
     return p -> last(divide(num,den)(p))
  end

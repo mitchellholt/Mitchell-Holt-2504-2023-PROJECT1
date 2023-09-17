@@ -26,7 +26,6 @@ include("src/polynomial_sparse.jl")
 # Type aliases
 const PolynomialSparse = PolynomialSparse_{Int}
 const PolynomialSparse128 = PolynomialSparse_{Int128}
-const PolynomialModP = PolynomialSparse_{ResidueInt}
 
 include("src/basic_polynomial_operations/polynomial_addition.jl")
 include("src/basic_polynomial_operations/polynomial_multiplication.jl")

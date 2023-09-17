@@ -21,17 +21,9 @@ end
 """
 Power of a polynomial.
 """
-function ^(p :: PolynomialModP, n :: Int)
-    n < 0 && error("No negative power")
-    iszero(p) && return p
-    out = one(PolynomialModP, underlying_prime(p))
-    for _ in 1:n
-        out *= p
-    end
-    return out
-end
 function ^(p :: P, n :: Int) where P <: Polynomial
     n < 0 && error("No negative power")
+    iszero(p) && return zero(p)
     out = one(p)
     for _ in 1:n
         out *= p
