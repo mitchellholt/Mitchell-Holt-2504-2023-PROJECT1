@@ -1,14 +1,15 @@
 """
 Representation of an integer modulo a prime
+TODO make it use Int128
 """
 struct ResidueInt <: Integer
     # Prime used to construct the field of residue classes
-    prime :: Int
+    prime :: Int128
     # Value mod prime
-    value :: Int
+    value :: Int128
 
     function ResidueInt(value :: I, p :: J) where {I <: Integer, J <: Integer}
-        return new(Int(p), Int(mod(value, p)))
+        return new(Int128(p), Int128(mod(value, p)))
     end
 end
 
@@ -34,8 +35,8 @@ ResidueInt(n :: ResidueInt) = ResidueInt(n.value, n.prime)
 """
 Unit and zero constructors
 """
-zero(::Type{ResidueInt}, prime :: Int) = ResidueInt(0, prime)
-one(::Type{ResidueInt}, prime :: Int) = ResidueInt(1, prime)
+zero(::Type{ResidueInt}, prime :: I) where I <: Integer = ResidueInt(0, Int128(prime))
+one(::Type{ResidueInt}, prime :: I) where I <: Integer = ResidueInt(1, Int128(prime))
 iszero(x :: ResidueInt) = x.value == 0
 
 """

@@ -6,14 +6,14 @@ struct PolynomialModP <: Polynomial
     # DictLinkedList mapping degrees of terms to the term. A polynomial is the
     # zero polynomial if and only if DictLinkedList is empty
     terms :: DictLinkedList{Int, Term{ResidueInt}}
-    prime :: Int
+    prime :: Int128
     
     #Inner constructor of 0 polynomial
     PolynomialModP(prime :: Int128) = new(
         DictLinkedList{Int, Term{ResidueInt}}(isless), prime)
 
     #Inner constructor of polynomial based on arbitrary list of terms
-    function PolynomialModP(vt::Vector{Term{ResidueInt}}, prime :: Int)
+    function PolynomialModP(vt::Vector{Term{ResidueInt}}, prime :: I) where I <: Integer
         terms = DictLinkedList{Int, Term{ResidueInt}}(isless)
         for t in vt
             if iszero(t)
@@ -24,13 +24,13 @@ struct PolynomialModP <: Polynomial
                 insert!(terms, t.degree, t)
             end
         end
-        new(terms, prime)
+        new(terms, Int128(prime))
     end
 
-    function PolynomialModP(vt::Vector{Term{I}}, prime :: Int) where I <: Integer
+    function PolynomialModP(vt::Vector{Term{I}}, prime :: J) where {I <: Integer, J <: Integer}
         terms = DictLinkedList{Int, Term{ResidueInt}}(isless)
         for t in map(term -> Term{ResidueInt}(
-                ResidueInt(term.coeff, prime), term.degree), vt)
+                ResidueInt(term.coeff, Int128(prime)), term.degree), vt)
             if iszero(t)
                 continue
             elseif contains(terms, t.degree)
@@ -39,10 +39,11 @@ struct PolynomialModP <: Polynomial
                 insert!(terms, t.degree, t)
             end
         end
-        new(terms, prime)
+        new(terms, Int128(prime))
     end
 
-    PolynomialModP(dll :: DictLinkedList{Int, Term{ResidueInt}}, prime :: Int) = new(dll, prime)
+    PolynomialModP(dll :: DictLinkedList{Int, Term{ResidueInt}},
+        prime :: I) where I <: Integer = new(dll, Int128(prime))
 end
 
 """
@@ -66,7 +67,7 @@ end
 """
 Construct a PolynomialSparse128 from a PolynomialModP using symmetric mod
 """
-function PolynomialSparse128(f :: PolynomialModP, m :: Int)
+function PolynomialSparse128(f :: PolynomialModP, m :: Int128)
     p = zero(PolynomialSparse128)
     for term in f
         t = Term{Int128}(smod(term.coeff.value, m), term.degree)
@@ -77,28 +78,28 @@ end
 """
 Construct a polynomial of the form x^p-x.
 """
-function cyclotonic_polynomial(::Type{PolynomialModP}, prime :: Int)
+function cyclotonic_polynomial(::Type{PolynomialModP}, prime :: I) where I <: Integer
     return PolynomialModP([
-            Term{ResidueInt}(ResidueInt(1, prime), prime),
-            Term{ResidueInt}(ResidueInt(-1, prime), 0)],
+            Term{ResidueInt}(ResidueInt(1, Int128(prime)), Int128(prime)),
+            Term{ResidueInt}(ResidueInt(-1, Int128(prime)), 0)],
         prime)
 end
 
 """
 Construct a polynomial of the form x-n.
 """
-function linear_monic_polynomial(::Type{PolynomialModP}, n::I, prime :: Int) where I <: Integer
+function linear_monic_polynomial(::Type{PolynomialModP}, n::I, prime :: J) where {I <: Integer, J <: Integer}
     return PolynomialModP([
-            Term{ResidueInt}(ResidueInt(1, prime), 1),
-            Term{ResidueInt}(ResidueInt(-n, prime), 0)],
+            Term{ResidueInt}(ResidueInt(1, Int128(prime)), 1),
+            Term{ResidueInt}(ResidueInt(-n, Int128(prime)), 0)],
         prime)
 end
 
 """
 Construct a polynomial of the form x.
 """
-function x_poly(::Type{PolynomialModP}, p :: Int)
-    return PolynomialModP(Term{ResidueInt}(ResidueInt(1, p), 1))
+function x_poly(::Type{PolynomialModP}, p :: I) where I <: Integer
+    return PolynomialModP(Term{ResidueInt}(ResidueInt(1, Int128(p)), 1))
 end
 
 """
@@ -118,7 +119,7 @@ one(p::PolynomialModP) = one(PolynomialModP, p.prime)
 """
 Generates a random polynomial.
 """
-function rand(::Type{PolynomialModP}, prime :: Int;
+function rand(::Type{PolynomialModP}, prime :: Int128;
               degree::Int = -1,
               terms::Int = -1,
               mean_degree::Float64 = 5.0,
