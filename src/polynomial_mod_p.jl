@@ -48,7 +48,20 @@ end
 """
 Construct a polynomial with a single term.
 """
+
 PolynomialModP(t::Term{ResidueInt}) = PolynomialModP([t], t.coeff.prime)
+
+"""
+Construct a polynomial mod p from a sparse polynomial
+"""
+function PolynomialModP(f :: PolynomialSparse_{I}, prime :: Int) where I <: Integer
+    p = zero(PolynomialModP, prime)
+    for t in f
+        term = Term{ResidueInt}(ResidueInt(t.coeff, prime), t.degree)
+        iszero(term) ? continue : push!(p, term)
+    end
+    return p
+end
 
 """
 Construct a polynomial of the form x^p-x.
@@ -131,9 +144,9 @@ function show(io::IO, p::PolynomialModP)
         term_list = lowest_to_highest ? p.terms : p.terms |> collect |> reverse
         for t in term_list
             if is_first
-                print(io, t.coeff.value < 0 ? "-" : "", t)
+                print(io, t)
             else
-                print(io, t.coeff.value < 0 ? " - " : " + ", t)
+                print(io, " + ", t)
             end
             is_first = false
         end
@@ -288,6 +301,17 @@ end
 """
 Multiplication of polynomial and an integer.
 """
+function *(n::ResidueInt, p1::PolynomialModP)
+    @assert n.prime == p1.prime
+    p = zero(p1)
+    (iszero(n) || iszero(p1)) && return p
+    for term in p1
+        t = n * term
+        push!(p, t)
+    end
+    return p
+end
+
 function *(n::I, p1::PolynomialModP) where I <: Integer
     p = PolynomialModP(p1.prime)
     i = ResidueInt(n, p1.prime)
@@ -306,5 +330,5 @@ Warning this may not make sense if n does not divide all the coefficients of p.
 Return a function if we are not working over a field
 """
 function ÷(p::PolynomialModP, n::I) where I <: Integer
-    return map(pt -> pt ÷ n, p.terms)
+    return PolynomialModP(map(pt -> pt ÷ n, p.terms), p.prime)
 end

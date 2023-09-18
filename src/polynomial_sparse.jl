@@ -1,5 +1,3 @@
-include("dict_linked_list.jl")
-
 """
 Sparse Polynomial type - store only the monomials with non-zero coefficient
 """
@@ -58,6 +56,7 @@ x_poly(::Type{PolynomialSparse_{I}}) where I <: Integer = PolynomialSparse_{I}(T
 Creates the zero polynomial.
 """
 zero(::Type{PolynomialSparse_{I}}) where I <: Integer = PolynomialSparse_{I}()
+zero(p :: PolynomialSparse_{I}) where I <: Integer = PolynomialSparse_{I}()
 
 """
 Creates the unit polynomial.

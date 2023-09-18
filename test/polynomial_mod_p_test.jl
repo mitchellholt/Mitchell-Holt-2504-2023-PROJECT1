@@ -56,7 +56,7 @@ function division_test_poly_mod_p(;prime::Int = 101, N::Int = 10^4, seed::Int = 
         p2 = rand(PolynomialModP, prime)
         p2 == 0 && continue
         p_prod = p1*p2
-        q, r = PolynomialModP(), PolynomialModP()
+        q, r = zero(PolynomialModP, prime), zero(PolynomialModP, prime)
         try
             q, r = divide(p_prod, p2)
             (q, r) == (nothing,nothing) && continue
@@ -75,7 +75,7 @@ end
 """
 Test the extended euclid algorithm for polynomials modulo p.
 """
-function ext_euclid_test_poly_mod_p(;prime::Int=101, N::Int = 10^3, seed::Int = 0)
+function ext_euclid_test_poly_mod_p(;prime::Int=3, N::Int = 10^3, seed::Int = 0)
     Random.seed!(seed)
     for _ in 1:N
         p1 = rand(PolynomialModP, prime)
@@ -83,7 +83,7 @@ function ext_euclid_test_poly_mod_p(;prime::Int=101, N::Int = 10^3, seed::Int = 
         g, s, t = extended_euclid_alg(p1, p2)
         @assert s*p1 + t*p2 - g == 0
     end
-    println("ext_euclid_test_poly_mod_p - PASSED")
+    println("\next_euclid_test_poly_mod_p - PASSED")
 end
 
 

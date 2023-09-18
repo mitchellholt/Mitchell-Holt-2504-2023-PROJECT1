@@ -29,10 +29,8 @@ Add a sparse polynomial and a term.
 """
 function +(p::PolynomialSparse_{I}, t::Term{I}) where I <: Integer
     p_out = deepcopy(p)
-    if iszero(t)
-        return p_out
-    end
-    if degree(p_out) < t.degree || !contains(p_out.terms, t.degree)
+    iszero(t) && p_out
+    if !contains(p_out.terms, t.degree)
         push!(p_out, t)
         return p_out
     else

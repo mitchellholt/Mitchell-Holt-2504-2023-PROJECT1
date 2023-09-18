@@ -15,14 +15,13 @@ function extended_euclid_alg(a :: PolynomialModP, b :: PolynomialModP)
     old_s, s = one(a), zero(a)
     old_t, t = zero(a), one(a)
 
-    while !iszero(r)
+    while !iszero(r) # infinite loop for some reason??
         q = first(divide(old_r, r))
         old_r, r = r, old_r - q*r
         old_s, s = s, old_s - q*s
         old_t, t = t, old_t - q*t
     end
     g, s, t = old_r, old_s, old_t
-
     @assert s*a + t*b - g == 0
     return g, s, t
 end

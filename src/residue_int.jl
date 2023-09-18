@@ -8,7 +8,7 @@ struct ResidueInt <: Integer
     value :: Int
 
     function ResidueInt(value :: I, p :: J) where {I <: Integer, J <: Integer}
-        return new(Int(p), Int(value % p))
+        return new(Int(p), Int(mod(value, p)))
     end
 end
 
@@ -27,7 +27,7 @@ show(io :: IO, n :: ResidueInt) = print(io, "$(n.value)")
 Integer conversion methods
 """
 Int(n :: ResidueInt) = n.value
-Int128(n :: ResidueInt) = n.value
+Base.Int128(n :: ResidueInt) = n.value
 ResidueInt(n :: ResidueInt) = ResidueInt(n.value, n.prime)
 
 
@@ -82,7 +82,7 @@ end
 """
 Only to be use for printing
 """
-abs(x :: ResidueInt) = x.value < 0 ? -x : x
+Base.abs(x :: ResidueInt) = x.value < 0 ? -x : x
 
 """
 Equality of integers up to modulo a prime
@@ -113,7 +113,7 @@ function ^(x :: ResidueInt, y :: I) where I <: Integer
     while d > 0
         ret *= x
         d -= 1
-        ret == 1 && return x^(y % (y - d)) # x^(y - d) = 1
+        ret == 1 && return x^(mod(y, (y - d))) # x^(y - d) = 1
     end
     return ret
 end

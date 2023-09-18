@@ -18,7 +18,7 @@ function factor(f :: PolynomialModP) :: Vector{Tuple{PolynomialModP, Int}}
     degree(f) <= 1 && return [(f, 1)]
 
     # make f square-free
-    squares_poly = gcd(f, derivative(ff))
+    squares_poly = gcd(f, derivative(f))
     # @show squares_poly, typeof(squares_poly)
     ff = f ÷ squares_poly
     # @show "after square free:", ff, typeof(ff)
@@ -121,7 +121,7 @@ function dd_factor(f :: PolynomialModP) :: Array{PolynomialModP}
 
     #Looping over degrees
     for k in 1:degree(f)
-        w = rem(w^prime, f)
+        w = rem(w^(f.prime), f)
         g[k] = gcd(w - x, f)
         f = f ÷ g[k]
     end
@@ -158,7 +158,7 @@ Returns a list of irreducible polynomials of degree `d` so that the product of t
 function dd_split(f :: PolynomialModP, d :: Int) :: Vector{PolynomialModP}
     degree(f) == d && return [f]
     degree(f) == 0 && return []
-    w = rand(PolynomialModP, degree = d, monic = true)
+    w = rand(PolynomialModP, f.prime, degree = d, monic = true)
     n_power = ((f.prime)^d - 1) ÷ 2
     g = gcd(w^n_power - one(f), f)
     ḡ = f ÷ g

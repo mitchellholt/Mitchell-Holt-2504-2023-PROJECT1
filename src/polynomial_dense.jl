@@ -93,6 +93,7 @@ x_poly(PolynomialDense) = PolynomialDense(Term{Int}(1,1))
 Creates the zero polynomial.
 """
 zero(::Type{PolynomialDense})::PolynomialDense = PolynomialDense()
+zero(p :: PolynomialDense)::PolynomialDense = PolynomialDense()
 
 """
 Creates the unit polynomial.
