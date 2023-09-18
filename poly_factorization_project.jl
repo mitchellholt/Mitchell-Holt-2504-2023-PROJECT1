@@ -22,11 +22,12 @@ abstract type Polynomial end
 
 include("src/polynomial_dense.jl")
 include("src/polynomial_sparse.jl")
-include("src/polynomial_mod_p.jl")
 
 # Type aliases
 const PolynomialSparse = PolynomialSparse_{Int}
 const PolynomialSparse128 = PolynomialSparse_{Int128}
+
+include("src/polynomial_mod_p.jl")
 
 include("src/basic_polynomial_operations/polynomial_addition.jl")
 include("src/basic_polynomial_operations/polynomial_multiplication.jl")

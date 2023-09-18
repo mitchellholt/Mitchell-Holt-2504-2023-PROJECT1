@@ -117,3 +117,15 @@ function ^(x :: ResidueInt, y :: I) where I <: Integer
     end
     return ret
 end
+
+
+"""
+Chinese remainder theorem for two integers. Return an Int128. We do not strictly
+require that a.prime and b.prime are acutally prime, only that they have gcd 1
+"""
+function crt(a :: ResidueInt, b :: ResidueInt)
+    @assert euclid_alg(a.prime, b.prime) == 1
+    v1 = a.value
+    v2 = ((b.value - v1) * inverse(ResidueInt(a.prime, b.prime))).value
+    return Int128(v1 + v2 * a.prime)
+end

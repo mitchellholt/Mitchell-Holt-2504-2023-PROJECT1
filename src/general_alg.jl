@@ -18,6 +18,16 @@ function quo(a::T,b::T) where T <: Integer
 end
 
 """
+Symmetric mod over an odd number
+"""
+function smod(n :: I, p :: I) where I <: Integer
+    @assert p % 2 == 1
+    k = div(p, 2)
+    r = mod(n, p)
+    return r <= k ? r : r - p
+end
+
+"""
 Euclid's algorithm.
 """
 function euclid_alg(a, b; rem_function = %)

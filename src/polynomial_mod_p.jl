@@ -9,7 +9,7 @@ struct PolynomialModP <: Polynomial
     prime :: Int
     
     #Inner constructor of 0 polynomial
-    PolynomialModP(prime :: Int) = new(
+    PolynomialModP(prime :: Int128) = new(
         DictLinkedList{Int, Term{ResidueInt}}(isless), prime)
 
     #Inner constructor of polynomial based on arbitrary list of terms
@@ -54,13 +54,24 @@ PolynomialModP(t::Term{ResidueInt}) = PolynomialModP([t], t.coeff.prime)
 """
 Construct a polynomial mod p from a sparse polynomial
 """
-function PolynomialModP(f :: PolynomialSparse_{I}, prime :: Int) where I <: Integer
+function PolynomialModP(f :: PolynomialSparse_{I}, prime :: J) where {I <: Integer, J <: Integer}
     p = zero(PolynomialModP, prime)
     for t in f
         term = Term{ResidueInt}(ResidueInt(t.coeff, prime), t.degree)
-        iszero(term) ? continue : push!(p, term)
+        iszero(term) || push!(p, term)
     end
     return p
+end
+
+"""
+Construct a PolynomialSparse128 from a PolynomialModP using symmetric mod
+"""
+function PolynomialSparse128(f :: PolynomialModP, m :: Int)
+    p = zero(PolynomialSparse128)
+    for term in f
+        t = Term{Int128}(smod(term.coeff.value, m), term.degree)
+        iszero(t) || push!(p, t)
+    end
 end
 
 """
