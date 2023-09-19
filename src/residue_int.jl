@@ -35,8 +35,8 @@ ResidueInt(n :: ResidueInt) = ResidueInt(n.value, n.prime)
 """
 Unit and zero constructors
 """
-zero(::Type{ResidueInt}, prime :: I) where I <: Integer = ResidueInt(0, Int128(prime))
-one(::Type{ResidueInt}, prime :: I) where I <: Integer = ResidueInt(1, Int128(prime))
+zero(::Type{ResidueInt}, prime :: I) where I <: Integer = ResidueInt(0, prime)
+one(::Type{ResidueInt}, prime :: I) where I <: Integer = ResidueInt(1, prime)
 iszero(x :: ResidueInt) = x.value == 0
 
 """
@@ -121,12 +121,13 @@ end
 
 
 """
-Chinese remainder theorem for two integers. Return an Int128. We do not strictly
-require that a.prime and b.prime are acutally prime, only that they have gcd 1
+Chinese remainder theorem for two integers. We do not strictly require that
+a.prime and b.prime are acutally prime, only that they have gcd 1
 """
 function crt(a :: ResidueInt, b :: ResidueInt)
-    @assert euclid_alg(a.prime, b.prime) == 1
-    v1 = a.value
-    v2 = ((b.value - v1) * inverse(ResidueInt(a.prime, b.prime))).value
-    return Int128(v1 + v2 * a.prime)
+    g, a_inv, b_inv = ext_euclid_alg(a.prime, b.prime)
+    @assert g == 1
+    x1 = a.value * b_inv * b.prime
+    x2 = b.value * a_inv * a.prime
+    return ResidueInt(x1 + x2, a.prime * b.prime)
 end

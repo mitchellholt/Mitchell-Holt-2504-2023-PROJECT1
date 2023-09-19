@@ -114,3 +114,23 @@ function int_to_superscript(k :: Int) :: String
         return k == 0 ? "^" : int_to_superscript(div(k, 10)) * Char(Int('0') + mod(k, 10))
     end
 end
+
+
+"""
+Check if a given integer is prime
+"""
+function is_prime(n :: Int128)
+    upper = sqrt(n)
+    i = Int128(2)
+    while i <= Int128(ceil(upper))
+        n % i == 0 && return false
+        i += 1
+    end
+    return true
+end
+
+
+"""
+Find the smallest prime larger than the given number
+"""
+next_prime(n :: Int128) = is_prime(n + 1) ? n + 1 : next_prime(n + 1)

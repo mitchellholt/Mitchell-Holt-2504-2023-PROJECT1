@@ -120,7 +120,7 @@ Add a polynomial and an integer.
 function +(p :: PolynomialModP, n :: I) where I <: Integer
     return p + (n * one(Term{ResidueInt}, p.prime))
 end
-+(p :: PolynomialSparse_{I}, n :: I) where I <: Integer = p + Term{I}(n,0)
-+(n :: I, p :: PolynomialSparse_{I}) where I <: Integer = p + Term{I}(n,0)
++(p :: PolynomialSparse_{I}, n :: J) where {I <: Integer, J <: Integer} = p + Term{I}(I(n),0)
++(n :: J, p :: PolynomialSparse_{I}) where {I <: Integer, J <: Integer} = p + Term{I}(I(n),0)
 +(p :: PolynomialDense, n :: Int) = p + Term{Int}(n, 0)
 +(n :: Int, p :: PolynomialDense) = p + Term{Int}(n, 0)

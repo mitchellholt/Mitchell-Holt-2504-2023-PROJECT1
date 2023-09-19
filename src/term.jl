@@ -25,15 +25,15 @@ end
 """
 Creates the zero term.
 """
-zero(::Type{Term{ResidueInt}}, prime :: Int) = Term{ResidueInt}(
+zero(::Type{Term{ResidueInt}}, prime :: I) where I <: Integer = Term{ResidueInt}(
     zero(ResidueInt, prime), 0)
 zero(::Type{Term{I}}) where I <: Integer = Term{I}(I(0),0)
 
 """
 Creates the unit term.
 """
-one(::Type{Term{ResidueInt}}, prime :: Int) = Term{ResidueInt}(
-    one(ResidueInt, prime),0)
+one(::Type{Term{ResidueInt}}, prime :: I) where I <: Integer = Term{ResidueInt}(
+    one(ResidueInt, prime), 0)
 one(::Type{Term{I}}) where I <: Integer = Term{I}(I(1),0)
 
 ###########

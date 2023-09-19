@@ -9,8 +9,8 @@ struct PolynomialModP <: Polynomial
     prime :: Int128
     
     #Inner constructor of 0 polynomial
-    PolynomialModP(prime :: Int128) = new(
-        DictLinkedList{Int, Term{ResidueInt}}(isless), prime)
+    PolynomialModP(prime :: I) where I <: Integer = new(
+        DictLinkedList{Int, Term{ResidueInt}}(isless), Int128(prime))
 
     #Inner constructor of polynomial based on arbitrary list of terms
     function PolynomialModP(vt::Vector{Term{ResidueInt}}, prime :: I) where I <: Integer
@@ -73,6 +73,7 @@ function PolynomialSparse128(f :: PolynomialModP, m :: Int128)
         t = Term{Int128}(smod(term.coeff.value, m), term.degree)
         iszero(t) || push!(p, t)
     end
+    return p
 end
 
 """
@@ -105,14 +106,14 @@ end
 """
 Creates the zero polynomial.
 """
-zero(::Type{PolynomialModP}, prime) = PolynomialModP(prime)
+zero(::Type{PolynomialModP}, prime :: I) where I <: Integer = PolynomialModP(prime)
 zero(p :: PolynomialModP) = PolynomialModP(p.prime)
 
 """
 Creates the unit polynomial.
 """
-function one(::Type{PolynomialModP}, prime :: Integer)
-    PolynomialModP(one(Term{ResidueInt}, prime))
+function one(::Type{PolynomialModP}, prime :: I) where I <: Integer
+    return PolynomialModP(one(Term{ResidueInt}, I(prime)))
 end
 one(p::PolynomialModP) = one(PolynomialModP, p.prime)
 

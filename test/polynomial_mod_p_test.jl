@@ -101,3 +101,13 @@ function pow_mod_poly_mod_p(;prime::Int = 19, N::Int = 30, seed::Int = 0)
     end
     println("\tPASSED")
 end
+
+
+function chinese_remainder_multiplication_test(;N :: Int = 10^2, seed :: Int = 0)
+    Random.seed!(seed)
+    for _ in 1:N
+        f = rand(PolynomialSparse128)
+        g = rand(PolynomialSparse128)
+        @assert f * g == multiply(f, g)
+    end
+end
