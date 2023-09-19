@@ -404,7 +404,7 @@ for an intermediate string representation of the input.
 \bigbreak
 
 \section{Task 2}
-\subsection{PolynomialSparse}
+\subsection{\texttt{PolynomialSparse}}
 The \texttt{PolynomialSparse} only stores \emph{non-zero} terms and is defined
 below. We will discuss the \texttt{DictLinkedList} data structure in detail in
 section \ref{dll}. We will explore the definition of the
@@ -496,7 +496,7 @@ end
 
 \bigbreak
 
-\subsection{DictLinkedList Data Structure} \label{dll}
+\subsection{\texttt{DictLinkedList} Data Structure} \label{dll}
 The data structure \texttt{DictLinkedList\string{K, V\string}} is a sorted
 linked list with values of type \texttt V along with a dictionary mapping some
 key type \texttt K into the nodes of the linked list so that we can quickly
@@ -666,7 +666,7 @@ memory of \texttt{PolynomialDense}.
 \bigbreak
 
 \section{Task 3}
-\subsection{PolynomialSparse128}
+\subsection{\texttt{PolynomialSparse128}}
 The new type \texttt{PolynomialSparse} was implemented by making existing types
 \texttt{Term}, and \texttt{PolynomialSparse} polymorphic over a coefficient type
 \texttt{I <: Integer}. For convenience, we define an abstract type
@@ -798,4 +798,244 @@ coefficent is only 1 word larger than one using a 64-bit coefficient.
 \bigbreak
 
 \section{Task 4}
+\subsection{\texttt{PolynomialModP} Implementation}
+Because the \texttt{Term\string{I\string}} type is already polymorphic over the
+underlying coefficient type, we can implement almost \emph{all} of the novel
+functionality of \texttt{PolynomialModP} by creating a type
+\texttt{ResidueInt <: Integer} representing a residue class of the integers
+modulo some prime.
+
+\begin{codebox}[src/residue\_int.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+struct ResidueInt <: Integer
+    # Prime used to construct the field of residue classes
+    prime :: Int128
+    # Value mod prime
+    value :: Int128
+
+    function ResidueInt(value :: I, p :: J) where {I <: Integer, J <: Integer}
+        return new(Int128(p), Int128(mod(value, p)))
+    end
+end
+
+    \end{Verbatim}
+\end{codebox}
+
+Notice in particular that both the prime and the value are stored in the
+\texttt{Int128} type so that we can work in the integers modulo a large prime
+(this becomes relevant in section \ref{crt}). We also define some basic
+arithmetic operations:
+
+\begin{codebox}[src/residue\_int.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+fmap(f :: Function, x :: ResidueInt) = ResidueInt(f(x.value), x.prime)
+
+function +(x :: ResidueInt, y :: ResidueInt)
+    @assert x.prime == y.prime
+    return ResidueInt(x.value + y.value, x.prime)
+end
+
+function -(x :: ResidueInt, y :: ResidueInt)
+    @assert x.prime == y.prime
+    return ResidueInt(x.value - y.value, x.prime)
+end
+
+function *(x :: ResidueInt, y :: ResidueInt)
+    @assert x.prime == y.prime
+    return ResidueInt(x.value * y.value, x.prime)
+end
+
+function inverse(x :: ResidueInt)
+    @assert !iszero(x)
+    g, t, s = ext_euclid_alg(x.value, x.prime)
+    @assert Base.abs(g) == 1
+    return ResidueInt(t, x.prime)
+end
+
+function ÷(x :: ResidueInt, y :: ResidueInt)
+    @assert x.prime == y.prime
+    return x * inverse(y)
+end
+
+-(x :: ResidueInt) = fmap(-, x)
+
+-(x :: ResidueInt, y :: ResidueInt) = x + (-y)
+    \end{Verbatim}
+\end{codebox}
+
+We define the following operations using both integers and the
+\texttt{ResidueInt} type:
+
+\begin{codebox}[src/residue\_int.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
++(x :: ResidueInt, y :: I) where I <: Integer = x + ResidueInt(y, x.prime)
++(y :: I, x :: ResidueInt) where I <: Integer = x + ResidueInt(y, x.prime)
+
+*(x :: ResidueInt, y :: I) where I <: Integer = x * ResidueInt(y, x.prime)
+*(y :: I, x :: ResidueInt) where I <: Integer = x * ResidueInt(y, x.prime)
+
+-(x :: ResidueInt, y :: I) where I <: Integer = x - ResidueInt(y, x.prime)
+-(y :: I, x :: ResidueInt) where I <: Integer = ResidueInt(y, x.prime) - x
+
+÷(x :: ResidueInt, y :: I) where I <: Integer = x ÷ ResidueInt(y, x.prime)
+
+function ^(x :: ResidueInt, y :: I) where I <: Integer
+    iszero(x) && return deepcopy(x)
+    y < 0 && return inverse(x) ^ (-y)
+    ret = one(ResidueInt, x.prime)
+    d = y
+    while d > 0
+        ret *= x
+        d -= 1
+        ret == 1 && return x^(mod(y, (y - d))) # x^(y - d) = 1
+    end
+    return ret
+end
+    \end{Verbatim}
+\end{codebox}
+
+The implementation of \texttt{PolynomialModP} is identical to that of
+\texttt{PolynomialSparse}, but we need to create a distinct struct so that we
+can store the underlying prime.
+
+\begin{codebox}[src/polynomial\_mod\_p.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+struct PolynomialModP <: Polynomial
+    terms :: DictLinkedList{Int, Term{ResidueInt}}
+    prime :: Int128
+    
+    PolynomialModP(prime :: I) where I <: Integer = new(
+        DictLinkedList{Int, Term{ResidueInt}}(isless), Int128(prime))
+
+    function PolynomialModP(vt::Vector{Term{ResidueInt}},
+            prime :: I) where I <: Integer
+        ...
+    end
+
+    function PolynomialModP(vt::Vector{Term{I}},
+            prime :: J) where {I <: Integer, J <: Integer}
+        ...
+    end
+
+    PolynomialModP(dll :: DictLinkedList{Int, Term{ResidueInt}},
+        prime :: I) where I <: Integer = new(dll, Int128(prime))
+end
+    \end{Verbatim}
+\end{codebox}
+
+Functions like polynomial division, gcd, and factorization which had required
+a prime to be supplied along with a polynomial in $\mathbb{Z}[x]$ make more
+sense to call when working in $\mathbb{Z}_p[x]$. All we need to do to implement
+these functions for \texttt{PolynomialModP} is remove the calls to \texttt{mod}
+and use the underlying prime of \texttt{PolynomialModP} instead of an argument
+to a function (where  it is applicable). For example, consider the
+implementations of division for \texttt{PolynomialModP} and
+\texttt{PolynomialSparse\_\string{I\string}}:
+
+\begin{codebox}[src/basic\_polynomial\_operations/polynomial\_division.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function divide(num :: PolynomialModP, den :: PolynomialModP)
+    @assert num.prime == den.prime
+    f = deepcopy(num)
+    g = den
+    iszero(g) && throw(DivideError())
+    q = zero(num)
+    prev_degree = degree(f)
+    while degree(f) >= degree(g) 
+        h = PolynomialModP(leading(f) ÷ leading(g))
+        f = f - h*g
+        q += h
+        prev_degree == degree(f) && break
+        prev_degree = degree(f)
+    end
+    @assert iszero(num  - (q*g + f))
+    return q, f
+end
+
+function divide(num :: PolynomialSparse_{I},
+        den :: PolynomialSparse_{I}) where I <: Integer
+    function division_function(prime::J) where J <: Integer
+        p = I(prime)
+        f, g = mod(num,p), mod(den,p)
+        degree(f) < degree(num) && return nothing 
+        iszero(g) && throw(DivideError())
+        q = PolynomialSparse_{I}()
+        prev_degree = degree(f)
+        while degree(f) >= degree(g) 
+            h = PolynomialSparse_{I}((leading(f) ÷ leading(g))(p))  #syzergy 
+            f = mod((f - h*g), p)
+            q = mod((q + h), p)
+            prev_degree == degree(f) && break
+            prev_degree = degree(f)
+        end
+        @assert iszero( mod((num  - (q*g + f)),p))
+        return q, f
+    end
+    return division_function
+end
+    \end{Verbatim}
+\end{codebox}
+
+\bigbreak
+
+\subsection{Tests}
+
+
+\bigbreak
+
+\subsection{\texttt{pow\_mod}}
+
+\bigbreak
+
+\section{Task 5} \label{crt}
+\subsection{CRT Mutliplication in \texttt{PolynomialSparse128}}
+
+\bigbreak
+
+\subsection{Tests}
+
+\bigbreak
+
+\subsection{Benchmarks}
+CRT multiplication is designed to speed up multiplications using dynamically
+sized integers; that is, integers too big to fit into one or two words. This is
+becuase we can do the fast in-built operations on integers that can fit in the
+CPU and reconstruct the polynomial with dynamically sized integers once at the
+end. Doing multiplication using the \emph{Chinese Remainder Theorem} is
+\emph{never} more efficient than naive polynomial multiplication on
+\texttt{Int128} or \texttt{Int64}, so we expect the benchmark to find that CRT
+multiplication is far slower than our naive implementation. The benchmark runs
+the following:
+
+\begin{codebox}[test/benchmark.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function chinese_remainder_multiplication(;N :: Int = 10^4, seed :: Int = 0)
+    println("Old Multiplication")
+    @time benchmark(*, N, seed)
+    println("CRT Multiplication")
+    @time benchmark(multiply, N, seed)
+end
+
+function benchmark(fn, N :: Int, seed :: Int)
+    Random.seed!(seed)
+    for _ in 1:N
+        f = rand(PolynomialSparse128)
+        g = rand(PolynomialSparse128)
+        @assert f * g == fn(f, g)
+    end
+end
+
+chinese_remainder_multiplication()
+    \end{Verbatim}
+\end{codebox}
+
+The above produces the following output, confirming what we expected:
+
+\begin{Verbatim}
+    Old Multiplication
+      2.551337 seconds (10.79 M allocations: 622.081 MiB)
+    CRT Multiplication
+     59.006724 seconds (281.37 M allocations: 19.979 GiB)
+\end{Verbatim}
+
 \end{document}
