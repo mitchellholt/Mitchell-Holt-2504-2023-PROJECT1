@@ -10,7 +10,11 @@
 """
 Test product of polynomials.
 """
-function prod_test_poly_mod_p(;N::Int = 10^3, N_prods::Int = 20, seed::Int = 0, prime :: Int = 101)
+function prod_test_poly_mod_p(;
+        N::Int = 10^2,
+        N_prods::Int = 20, seed::Int = 0,
+        prime :: Int128 = Int128(101))
+
     Random.seed!(seed)
     for _ in 1:N
         p1 = rand(PolynomialModP, prime)
@@ -33,7 +37,10 @@ end
 """
 Test derivative of polynomials (as well as product).
 """
-function prod_derivative_test_poly_mod_p(;N::Int = 10^2,  seed::Int = 0, prime :: Int = 101)
+function prod_derivative_test_poly_mod_p(;
+        N::Int = 10^2,
+        seed::Int = 0,
+        prime :: Int128 = Int128(101))
     Random.seed!(seed)
     for _ in 1:N
         p1 = rand(PolynomialModP, prime)
@@ -49,7 +56,10 @@ end
 """
 Test division of polynomials modulo p.
 """
-function division_test_poly_mod_p(;prime::Int = 101, N::Int = 10^4, seed::Int = 0)
+function division_test_poly_mod_p(;
+        prime::Int128 = Int128(101),
+        N::Int = 10^4,
+        seed::Int = 0)
     Random.seed!(seed)
     for _ in 1:N
         p1 = rand(PolynomialModP, prime)
@@ -75,7 +85,11 @@ end
 """
 Test the extended euclid algorithm for polynomials modulo p.
 """
-function ext_euclid_test_poly_mod_p(;prime::Int=3, N::Int = 10^3, seed::Int = 0)
+function ext_euclid_test_poly_mod_p(;
+        prime::Int128=Int128(3),
+        N::Int = 10^3,
+        seed::Int = 0)
+
     Random.seed!(seed)
     for _ in 1:N
         p1 = rand(PolynomialModP, prime)
@@ -91,7 +105,11 @@ end
 Super sparse polynomials
 
 """
-function pow_mod_poly_mod_p(;prime::Int = 19, N::Int = 30, seed::Int = 0)
+function pow_mod_poly_mod_p(;
+        prime::Int128 = Int128(19),
+        N::Int = 30,
+        seed::Int = 0)
+
     Random.seed!(seed)
     print("pow_mod_poly_mod_p\t")
     for k in 1:N

@@ -1,6 +1,5 @@
 """
 Representation of an integer modulo a prime
-TODO make it use Int128
 """
 struct ResidueInt <: Integer
     # Prime used to construct the field of residue classes
@@ -12,11 +11,6 @@ struct ResidueInt <: Integer
         return new(Int128(p), Int128(mod(value, p)))
     end
 end
-
-"""
-Give the smallest strictly positive representative of the equivalence class
-"""
-positive_value(x :: ResidueInt) = x.value < 0 ? ResidueInt(x.value + x.prime, x.prime) : x
 
 """
 Show the canonical representative of the int
@@ -83,7 +77,7 @@ end
 """
 Only to be use for printing
 """
-Base.abs(x :: ResidueInt) = x.value < 0 ? -x : x
+Base.abs(x :: ResidueInt) = x
 
 """
 Equality of integers up to modulo a prime

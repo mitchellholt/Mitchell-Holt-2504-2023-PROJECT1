@@ -71,6 +71,8 @@ function divide(num :: PolynomialSparse_{I}, den :: PolynomialSparse_{I}) where 
     end
     return division_function
 end
+
+
 """
 The quotient from polynomial division. Returns a function of an integer.
 """

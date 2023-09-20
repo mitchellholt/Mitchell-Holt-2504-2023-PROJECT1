@@ -58,13 +58,16 @@ function factor_test_poly_sparse_128(;N::Int = 10, seed::Int = 0, primes::Vector
     println("\nfactor_test_poly_sparse_128 - PASSED")
 end
 
-function factor_test_poly_mod_p(;N::Int = 10, seed::Int = 30, primes::Vector{Int} = [5,17,19])
+function factor_test_poly_mod_p(;
+        N::Int = 10,
+        seed::Int = 30,
+        primes::Vector{Int} = [5,17,19])
     Random.seed!(seed)
     for prime in primes
         print("\ndoing prime = $prime \t")
         for _ in 1:N
             print(".")
-            p = rand(PolynomialModP, prime)
+            p = rand(PolynomialModP, Int128(prime))
             factorization = factor(p)
             pr = expand_factorization(factorization)
             @assert p - pr == 0

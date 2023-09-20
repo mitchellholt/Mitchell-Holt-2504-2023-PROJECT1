@@ -65,7 +65,7 @@ end
 """
 Power of a polynomial.
 """
-function ^(p :: P, n :: Int) where P <: Polynomial
+function ^(p :: P, n :: I) where {P <: Polynomial, I <: Integer}
     n < 0 && error("No negative power")
     iszero(p) && return zero(p)
     out = one(p)
