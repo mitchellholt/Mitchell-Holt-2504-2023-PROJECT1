@@ -299,5 +299,5 @@ Power of a polynomial mod prime.
 function pow_mod(p :: PolynomialSparse_{I},
         n :: Int, prime :: J) where {I <: Integer, J <: Integer}
     n < 0 && error("No negative power")
-    return PolynomialSparse_{I}(PolynomialModP(p, prime)^n)
+    return PolynomialSparse_{I}(PolynomialModP(p, prime)^n, mod)
 end

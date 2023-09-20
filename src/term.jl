@@ -16,9 +16,9 @@ A term.
 struct Term{I}
     coeff :: I
     degree :: Int
-    function Term{I}(coeff::I, degree::Int) where I <: Integer
+    function Term{I}(coeff::J, degree::Int) where {I <: Integer, J <: Integer}
         degree < 0 && error("Degree must be non-negative")
-        iszero(coeff) ? new(coeff,0) : new(coeff,degree)
+        iszero(coeff) ? new(I(coeff),0) : new(I(coeff),degree)
     end
 end
 
