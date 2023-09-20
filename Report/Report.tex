@@ -985,6 +985,48 @@ in \texttt{test/polynomia\_mod\_p\_test.jl}
 \bigbreak
 
 \subsection{\texttt{pow\_mod}}
+We rewrite \texttt{pow\_mod} so that it converts a sparse polynomial to a
+\texttt{PolynomialModP}, raising it to a power over $\mathbb{Z}_p[x]$, then
+converting it back to a sparse polynomial. The following methods were defined to
+convert to and from \texttt{PolynomialSparse\_\string{I\string}} and
+\texttt{PolynomialModP}:
+
+\begin{codebox}[src/polynomial\_mod\_p.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function PolynomialModP(f :: PolynomialSparse_{I},
+        prime :: J) where {I <: Integer, J <: Integer}
+    p = zero(PolynomialModP, prime)
+    for t in f
+        term = Term{ResidueInt}(ResidueInt(t.coeff, prime), t.degree)
+        iszero(term) || push!(p, term)
+    end
+    return p
+end
+
+function PolynomialSparse_{I}(f :: PolynomialModP,
+        mod_fn = smod) where {I <: Integer, J <: Integer}
+    p = zero(PolynomialSparse_{I})
+    for term in f
+        t = Term{I}(mod_fn(term.coeff.value, f.prime), term.degree)
+        iszero(t) || push!(p, t)
+    end
+    return p
+end
+    \end{Verbatim}
+\end{codebox}
+
+Thus we define:
+
+\begin{codebox}[src/polynomial\_sparse.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function pow_mod(p :: PolynomialSparse_{I},
+        n :: Int, prime :: J) where {I <: Integer, J <: Integer}
+    n < 0 && error("No negative power")
+    return PolynomialSparse_{I}(PolynomialModP(p, prime)^n, mod)
+end
+    \end{Verbatim}
+\end{codebox}
+
 
 \bigbreak
 
