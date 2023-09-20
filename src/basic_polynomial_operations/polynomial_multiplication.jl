@@ -46,7 +46,7 @@ function multiply(a :: PolynomialSparse128, b :: PolynomialSparse128)
         c = crt(c, PolynomialModP(a, p) * PolynomialModP(b, p))
         prime_product *= p
     end
-    return PolynomialSparse128(c, prime_product)
+    return PolynomialSparse128(c)
 end
 
 

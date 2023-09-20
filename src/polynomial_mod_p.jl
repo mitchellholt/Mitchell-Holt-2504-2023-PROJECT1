@@ -64,17 +64,20 @@ function PolynomialModP(f :: PolynomialSparse_{I}, prime :: J) where {I <: Integ
     return p
 end
 
+
 """
 Construct a PolynomialSparse128 from a PolynomialModP using symmetric mod
 """
-function PolynomialSparse128(f :: PolynomialModP, m :: Int128)
-    p = zero(PolynomialSparse128)
+function PolynomialSparse_{I}(f :: PolynomialModP,
+        mod_fn = smod) where {I <: Integer, J <: Integer}
+    p = zero(PolynomialSparse_{I})
     for term in f
-        t = Term{Int128}(smod(term.coeff.value, m), term.degree)
+        t = Term{I}(mod_fn(term.coeff.value, f.prime), term.degree)
         iszero(t) || push!(p, t)
     end
     return p
 end
+
 
 """
 Construct a polynomial of the form x^p-x.
