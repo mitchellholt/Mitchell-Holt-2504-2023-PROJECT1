@@ -66,11 +66,11 @@ end
 Power of a polynomial using repeated squaring
 """
 function ^(p :: P, n :: I) where {P <: Polynomial, I <: Integer}
-    m = Int128(n)
-    m < 0 && error("No negative power")
+    n < 0 && error("No negative power")
+    m = UInt128(n)
     ans, w = one(p), p
     while n > 0
-        if n % 2 == 1
+        if n &0x01 == 0x01
             ans *= w
         end
         w *= w
