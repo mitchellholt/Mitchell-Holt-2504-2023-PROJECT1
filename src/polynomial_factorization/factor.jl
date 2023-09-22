@@ -153,14 +153,16 @@ end
 
 """
 Distinct degree split.
-Returns a list of irreducible polynomials of degree `d` so that the product of that list (mod prime) is the polynomial `f`.
+Returns a list of irreducible polynomials of degree `d` so that the product of
+that list (mod prime) is the polynomial `f`.
 """
 function dd_split(f :: PolynomialModP, d :: Int) :: Vector{PolynomialModP}
     degree(f) == d && return [f]
     degree(f) == 0 && return []
     w = rand(PolynomialModP, f.prime, degree = d, monic = true)
     n_power = ((f.prime)^d - 1) ÷ 2
-    g = gcd(w^n_power - one(f), f)
+    p = w^n_power - one(f) # disgustingly large
+    g = gcd(p, f) # f is not that big
     ḡ = f ÷ g
     return vcat(dd_split(g, d), dd_split(ḡ, d))
 end

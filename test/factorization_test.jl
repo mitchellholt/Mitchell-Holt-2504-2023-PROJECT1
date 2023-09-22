@@ -76,3 +76,22 @@ function factor_test_poly_mod_p(;
 
     println("\nfactor_test_poly_mod_p - PASSED")
 end
+
+
+function factor_test(;
+        N :: Int = 10,
+        prime :: Int128 = Int128(19),
+        deg :: Int = 3,
+        seed :: Int = 0)
+
+    Random.seed!(seed)
+    for _ in 1:10
+        f = rand(PolynomialModP, prime, degree = deg)
+        g = rand(PolynomialModP, prime, degree = deg)
+        factorization = factor(f * g)
+        pr = expand_factorization(factorization)
+        @assert f * g - pr == 0
+        print(".")
+    end
+    println()
+end

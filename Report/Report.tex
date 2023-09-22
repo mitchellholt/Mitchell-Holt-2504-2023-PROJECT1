@@ -1223,7 +1223,85 @@ end
 \bigbreak
 
 \subsection{Factoring}
+Because of the care we have taken when constructing each polynomial data
+structure, we need only make the factorization algorithms polymorphic over any
+subtype of \texttt{Polynomial} to implement factorization for the
+\texttt{PolynomialSparse} and \texttt{PolynomialSparse128} types (although all
+the factorization is nonetheless done in $\mathbb{Z}_p[x]$ for some prime $p$).
+We implement factorization using \texttt{PolynomialModP} by simply removing any
+calls to \texttt{mod} or \texttt{pow\_mod} (since the coefficients are instances
+of \texttt{ResidueInt}, this functionality is baked in). For example, the
+\texttt{factor} method was implemented as follows:
 
+\begin{codebox}[src/polynomial\_factorization/factor.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function factor(f :: PolynomialModP) :: Vector{Tuple{PolynomialModP, Int}}
+    degree(f) <= 1 && return [(f, 1)]
+
+    squares_poly = gcd(f, derivative(f))
+    ff = f ÷ squares_poly
+
+    # make f monic
+    old_coeff = leading(ff).coeff
+    ff = ff ÷ old_coeff
+
+    dds = dd_factor(ff)
+
+    ret_val = Tuple{PolynomialModP, Int}[]
+
+    for (k,dd) in enumerate(dds)
+        sp = map(p -> p ÷ leading(p).coeff, dd_split(dd, k))
+        for mp in sp
+            push!(ret_val, (mp, multiplicity(f, mp)))
+        end
+    end
+
+    push!(ret_val, (leading(f).coeff * one(f), 1))
+
+    return ret_val
+end
+    \end{Verbatim}
+\end{codebox}
+
+In particular, notice that we do not make the input polynomial $f$ primitive
+because we are working in a field (and hence any two non-zero coefficients have
+gcd 1). \medbreak
+
+The following test was created to test the \texttt{factor} algorithm, in
+addition to the existing \texttt{factor\_test\_poly},
+\texttt{factor\_test\_poly\_sparse}, \texttt{factor\_test\_poly\_sparse\_128}
+and \texttt{factor\_test\_poly\_mod\_p} in the same file:
+
+\begin{codebox}[test/factorization\_test.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function factor_test(;
+        N :: Int = 10,
+        prime :: Int128 = Int128(19),
+        deg :: Int = 3,
+        seed :: Int = 0)
+
+    Random.seed!(seed)
+    for _ in 1:10
+        f = rand(PolynomialModP, prime, degree = deg)
+        g = rand(PolynomialModP, prime, degree = deg)
+        factorization = factor(f * g)
+        pr = expand_factorization(factorization)
+        @assert f * g - pr == 0
+        print(".")
+    end
+    println()
+end
+    \end{Verbatim}
+\end{codebox}
+
+We can run the above with the \texttt{@time} macro to benchmark \texttt{factor},
+giving the following output (with all output except the time and memory usage
+manually removed):
+
+\begin{Verbatim}
+    ..........
+      5.343347 seconds (17.29 M allocations: 1.372 GiB)
+\end{Verbatim}
 \bigbreak
 
 \section{Bonus Tasks}
