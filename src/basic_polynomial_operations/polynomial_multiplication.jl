@@ -70,7 +70,7 @@ function ^(p :: P, n :: I) where {P <: Polynomial, I <: Integer}
     m = UInt128(n)
     ans, w = one(p), p
     while n > 0
-        if n &0x01 == 0x01
+        if n & 0x01 != 0x00
             ans *= w
         end
         w *= w
