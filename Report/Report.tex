@@ -280,12 +280,12 @@ Output:
 \bigbreak
 
 \subsection{Pretty Printing}
-The show methods in both \texttt{polynomial.jl} and \texttt{term.jl} were
-modified to meet the pretty printing rules. A global option was added to
+The show methods in both \texttt{src/polynomial.jl} and \texttt{src/term.jl}
+were modified to meet the pretty printing rules. A global option was added to
 determine if terms in polynomials were printed in ascending or descending term
 order (defaulting to descending):
 
-\begin{codebox}[polynomial.jl]
+\begin{codebox}[src/polynomial.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 """
 Based global variable for deciding the order in which polynomial terms are
@@ -298,7 +298,7 @@ global lowest_to_highest :: Bool = false
 The provided \texttt{show} method for polynomials was replaced with the
 following:
 
-\begin{codebox}[polynomial.jl]
+\begin{codebox}[src/polynomial.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 function show(io::IO, p::Polynomial) 
     if iszero(p)
@@ -344,7 +344,7 @@ whitespace). \medbreak
 
 Consider now the implementation of the \texttt{show} method for monomials:
 
-\begin{codebox}[term.jl]
+\begin{codebox}[src/term.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 function show(io::IO, t::Term)
     if t.degree == 0
@@ -368,7 +368,7 @@ on lines 5 and 7-8, we only print the degree of the monomial if it not 1.
 Finally, unicode superscript printing was implemented using a function
 \texttt{int\_to\_superscript}:
 
-\begin{codebox}[general\_alg.jl]
+\begin{codebox}[src/general\_alg.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 function digit_to_superscript(n :: Int) :: Char
     # Literal for zero
@@ -411,7 +411,7 @@ section \ref{dll}. We will explore the definition of the
 \texttt{PolynomialSparse} type and look at the non-trivial operations on it
 which are substantially different to those on the provided type.
 
-\begin{codebox}[polynomial\_sparse.jl]
+\begin{codebox}[src/polynomial\_sparse.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 struct PolynomialSparse
 
@@ -448,7 +448,7 @@ polynomial, the unique way to represent the zero polynomial is the one where the
 operations on \texttt{PolynomialSparse.terms} to take advantage of the
 underlying list being sorted.
 
-\begin{codebox}[basic\_polynomial\_operations/polynomial\_addition.jl]
+\begin{codebox}[src/basic\_polynomial\_operations/polynomial\_addition.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 function +(p1 :: PolynomialSparse, p2 :: PolynomialSparse) :: PolynomialSparse
     p1_ = deepcopy(p1)
@@ -504,7 +504,7 @@ lookup values inside the linked list without having to traverse it. To make
 the type polymorphic, we simply add a field in the struct containing a
 comparator \texttt{comp}.
 
-\begin{codebox}[dict\_linked\_list.jl]
+\begin{codebox}[src/dict\_linked\_list.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 mutable struct DictLinkedList{K, V}
     # Sorted linked list
@@ -526,7 +526,7 @@ The \texttt{iteration} interface is implemented by simply iterating over the
 underlying linked list (in order). Observe that on line 4 we compare pointers
 for equality to improve speed without sacrificing correctness:
 
-\begin{codebox}[dict\_linked\_list.jl]
+\begin{codebox}[src/dict\_linked\_list.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 function Base.iterate(
         dll :: DictLinkedList{K, V},
@@ -542,7 +542,7 @@ using \texttt{insert!}, which takes a key and value and inserts the value into
 the underlying list (such that order is preserved) and maps the key to a pointer
 to the newly created list node in the underlying dictionary.
 
-\begin{codebox}[dict\_linked\_list.jl]
+\begin{codebox}[src/dict\_linked\_list.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 function insert!(dll :: DictLinkedList{K, V}, key :: K, value :: V) where {K, V}
     # check the key does not already exist in the dictionary
@@ -583,7 +583,7 @@ end
 There is also a method to remove a key from the dictionary and the value pointed
 to by the key from the list:
 
-\begin{codebox}[dict\_linked\_list.jl]
+\begin{codebox}[src/dict\_linked\_list.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 function remove!(dll :: DictLinkedList{K, V}, key :: K) :: Nothing where {K, V}
     !haskey(dll.dict, key) && error("Key does not exist")
@@ -672,7 +672,7 @@ The new type \texttt{PolynomialSparse} was implemented by making existing types
 \texttt{I <: Integer}. For convenience, we define an abstract type
 \texttt{Polynomial} and write:
 
-\begin{codebox}[term.jl]
+\begin{codebox}[src/term.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 struct Term{I}
     coeff :: I
@@ -685,7 +685,7 @@ end
     \end{Verbatim}
 \end{codebox}
 
-\begin{codebox}[polynomial\_dense.jl]
+\begin{codebox}[src/polynomial\_dense.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 struct PolynomialDense <: Polynomial
     terms::Vector{Term{Int}}   
@@ -698,7 +698,7 @@ end
     \end{Verbatim}
 \end{codebox}
 
-\begin{codebox}[polynomial\_dense.jl]
+\begin{codebox}[src/polynomial\_dense.jl]
     \begin{Verbatim}[numbers=left,xleftmargin=5mm]
 struct PolynomialSparse_{I} <: Polynomial
     terms :: DictLinkedList{Int, Term{I}}
@@ -1032,10 +1032,98 @@ end
 
 \section{Task 5} \label{crt}
 \subsection{CRT Mutliplication in \texttt{PolynomialSparse128}}
+First we will write a function to construct a solution to the integer Chinese
+Remainder Theorem. Let $n_1, n_2 \in \mathbb{Z}$ be coprime and $a, b \in
+\mathbb{Z}$ with $0 \leq a < n_1$ and $0 \leq b < n_2$. We wish to find a $u \in
+\mathbb{Z}_{n_1n_2}$ such that $u \equiv a \pmod{n_1}$ and $u \equiv b
+\pmod{n_2}$. By \emph{B\`ezout's Lemma}, there exists $m_1, m_2 \in \mathbb{Z}$
+such that $n_1m_1 + n_2m_2 = 1$; in particular, $m_1 = n_1^{-1} \pmod{n_2}$ and
+$m_2 = n_2^{-1} \pmod{n_1}$. Observe:
+\begin{gather*}
+    an_2m_2 + bn_1m_1 \equiv an_2m_2 \equiv a \pmod{n_1} \\
+    an_2m_2 + bn_1m_1 \equiv bn_1m_1 \equiv b \pmod{n_2}
+\end{gather*}
+Therefore $u = an_2m_2 + bn_1m_1$ satisfies the theorem. Hence we define the
+integer \emph{Chinese Remainder Theorem} as:
+
+\begin{codebox}[src/residue\_int.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function crt(a :: ResidueInt, b :: ResidueInt)
+    g, a_inv, b_inv = ext_euclid_alg(a.prime, b.prime)
+    @assert g == 1
+    x1 = a.value * b_inv * b.prime
+    x2 = b.value * a_inv * a.prime
+    return ResidueInt(x1 + x2, a.prime * b.prime)
+end
+    \end{Verbatim}
+\end{codebox}
+
+We construct a solution for the \emph{Chinese Remainder Theorem} for polynomials
+by constructing an integer solution for each coefficient:
+
+\begin{codebox}[src/residue\_int.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function crt(a :: PolynomialModP, b :: PolynomialModP)
+    @assert euclid_alg(a.prime, b.prime) == 1
+    x = x_poly(PolynomialModP, a.prime * b.prime)
+    c = zero(x)
+    for k in max(degree(a), degree(b)):(-1):0
+        # Coefficient of x^k in a
+        ak = contains(a.terms, k) ? lookup(a.terms, k).coeff
+            : zero(ResidueInt, a.prime)
+        # Coefficient of x^k in b
+        bk = contains(b.terms, k) ? lookup(b.terms, k).coeff
+            : zero(ResidueInt, b.prime)
+        ck = crt(ak, bk)
+        c += ck * x^k
+    end
+    return c
+end
+    \end{Verbatim}
+\end{codebox}
+
+Finally we may define multiplication on \texttt{PolynomialSparse128} via the
+\emph{Chinese Remainder Theorem}:
+
+\begin{codebox}[src/basic\_polynomial\_operations/polynomial\_multiplication.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function multiply(a :: PolynomialSparse128, b :: PolynomialSparse128)
+    # Create an upper bound for the prime to use
+    height_a = maximum(abs(t.coeff) for t in a)
+    height_b = maximum(abs(t.coeff) for t in b)
+    upper = 2 * height_a * height_b * min(degree(a) + 1, degree(b) + 1)
+
+    p = Int128(3)
+    prime_product = p
+    c = PolynomialModP(a, p) * PolynomialModP(b, p) # not mod prime, but its ok
+    while prime_product < upper
+        p = next_prime(p)
+        c = crt(c, PolynomialModP(a, p) * PolynomialModP(b, p))
+        prime_product *= p
+    end
+    return PolynomialSparse128(c)
+end
+    \end{Verbatim}
+\end{codebox}
 
 \bigbreak
 
 \subsection{Tests}
+The following test checks for correctness of CRT multiplication on random
+polynomials:
+
+\begin{codebox}[test/polynomial\_mod\_p\_test.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function chinese_remainder_multiplication_test(;N :: Int = 10^2, seed :: Int = 0)
+    Random.seed!(seed)
+    for _ in 1:N
+        f = rand(PolynomialSparse128)
+        g = rand(PolynomialSparse128)
+        @assert f * g == multiply(f, g)
+    end
+end
+    \end{Verbatim}
+\end{codebox}
 
 \bigbreak
 
@@ -1081,4 +1169,79 @@ The above produces the following output, confirming what we expected:
      59.006724 seconds (281.37 M allocations: 19.979 GiB)
 \end{Verbatim}
 
+\bigbreak
+
+\section{Task 6}
+\subsection{Power}
+We refactor \texttt{\^} to use repeated squaring. Notice that, because
+\texttt{pow\_mod} is defined by taking powers of \texttt{PolynomialModP}, this
+will make \texttt{pow\_mod} use repeated squaring as well.
+
+\begin{codebox}[src/basic\_polynomial\_operations/polynomial\_multiplication.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function ^(p :: P, n :: I) where {P <: Polynomial, I <: Integer}
+    m = Int128(n)
+    m < 0 && error("No negative power")
+    ans, w = one(p), p
+    while n > 0
+        if n % 2 == 1
+            ans *= w
+        end
+        w *= w
+        n >>= 1
+    end
+    return ans
+end
+    \end{Verbatim}
+\end{codebox}
+
+To test the \texttt{\^} implementation, we modify the existing
+\texttt{pow\_mod\_poly\_sparse} test to verify that the leading term has the
+correct coefficient and degree. The test for \texttt{PolynomialSparse128} type
+is identical and may be found in \texttt{test/polynomial\_sparse128\_test.jl}.
+Because \texttt{pow\_mod} over the integers uses the built-in power function,
+this test does indeed test the correctness of the implementation of \texttt{\^}
+using repeated squaring.
+
+\begin{codebox}[test/polynomial\_sparse\_test.jl]
+    \begin{Verbatim}[numbers=left,xleftmargin=5mm]
+function pow_mod_poly_sparse(;prime::Int = 19, N::Int = 30, seed::Int = 0)
+    Random.seed!(seed)
+    print("pow_mod_poly_sparse\t")
+    for k in 1:N
+        f = rand(PolynomialSparse; prob_term = 0.01, mean_degree = Float64(120))
+        g = pow_mod(f, k, prime)
+        @assert degree(g) == k * degree(f)
+        @assert leading(g).coeff == pow_mod(leading(f).coeff, k, prime)
+        print(".")
+    end
+    println("\tPASSED")
+end
+    \end{Verbatim}
+\end{codebox}
+
+\bigbreak
+
+\subsection{Factoring}
+
+\bigbreak
+
+\section{Bonus Tasks}
+\subsection{Perspective Seminar}
+Dr Mehta completed a bachelor's degree in pure maths at UQ and went on to study
+partial differential equations for honours. She then began a PhD in mathematical
+physics, but as her funding started ro run out after a few years she started
+working as a software tester. After 6 months at her job, she was sent to a
+course to learn to code in C++ and transitioned to algorithmic coding, before
+moving into a role as a support manager and a team lead. After 17 years at her
+first software job, Dr Mehta moved to Deswick and worked on writing mining
+software. \medbreak
+
+She now works at You Smart Thing, a small company with only 6 developers, who
+work in event organisation (e.g. large sports events). Dr Mehta is the lead of
+software engineering and innovation, so she spends most of her time in agile
+meetings, writing, reviewing and testing code, and deploying solutions. You
+Smart Thing have found microservices very helpful for data management,
+especially when their software needs to retrieve only small parts of some data
+which is too large to fit into memory.
 \end{document}

@@ -63,14 +63,18 @@ function *(p1 :: P, p2 :: P) :: P where P <: Polynomial
 end
 
 """
-Power of a polynomial.
+Power of a polynomial using repeated squaring
 """
 function ^(p :: P, n :: I) where {P <: Polynomial, I <: Integer}
-    n < 0 && error("No negative power")
-    iszero(p) && return zero(p)
-    out = one(p)
-    for _ in 1:n
-        out *= p
+    m = Int128(n)
+    m < 0 && error("No negative power")
+    ans, w = one(p), p
+    while n > 0
+        if n % 2 == 1
+            ans *= w
+        end
+        w *= w
+        n >>= 1
     end
-    return out
+    return ans
 end

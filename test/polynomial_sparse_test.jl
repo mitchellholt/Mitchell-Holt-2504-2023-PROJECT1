@@ -98,7 +98,9 @@ function pow_mod_poly_sparse(;prime::Int = 19, N::Int = 30, seed::Int = 0)
     print("pow_mod_poly_sparse\t")
     for k in 1:N
         f = rand(PolynomialSparse; prob_term = 0.01, mean_degree = Float64(120))
-        @assert leading(pow_mod(f, k, prime)).coeff == pow_mod(leading(f).coeff, k, prime)
+        g = pow_mod(f, k, prime)
+        @assert degree(g) == k * degree(f)
+        @assert leading(g).coeff == pow_mod(leading(f).coeff, k, prime)
         print(".")
     end
     println("\tPASSED")
